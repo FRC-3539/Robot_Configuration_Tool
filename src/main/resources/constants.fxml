@@ -16,9 +16,11 @@
             <HBox spacing="10" alignment="center">
                 <TextField fx:id="nameField" promptText="Name" />
                 <ComboBox fx:id="typeComboBox" promptText="Type" />
-                <TextField fx:id="valueField" promptText="Value" />
+                <StackPane>
+                    <TextField fx:id="valueField" promptText="Value" />
+                    <CheckBox fx:id="booleanSwitch" text="True/False" visible="false" />
+                </StackPane>
                 <Button text="Add" fx:id="addConstantButton" />
-                <Button text="Delete" fx:id="deleteConstantButton" />
             </HBox>
         </VBox>
     </center>
