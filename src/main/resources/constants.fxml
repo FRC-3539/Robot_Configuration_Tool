@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="motion.profile.mapper.ConstantsController">
+    <center>
+        <VBox spacing="10" alignment="center" style="-fx-padding: 10;">
+            <TableView fx:id="constantsTableView" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="nameColumn" text="Name" />
+                    <TableColumn fx:id="typeColumn" text="Type" />
+                    <TableColumn fx:id="valueColumn" text="Value" />
+                </columns>
+            </TableView>
+            <HBox spacing="10" alignment="center">
+                <TextField fx:id="nameField" promptText="Name" />
+                <ComboBox fx:id="typeComboBox" promptText="Type" />
+                <TextField fx:id="valueField" promptText="Value" />
+                <Button text="Add" fx:id="addConstantButton" />
+                <Button text="Delete" fx:id="deleteConstantButton" />
+            </HBox>
+        </VBox>
+    </center>
+</BorderPane>
