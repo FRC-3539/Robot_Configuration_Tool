@@ -67,7 +67,20 @@ public class ConstantsController {
         });
         valueColumn.setOnEditCommit(event -> {
             Constant constant = event.getRowValue();
-            constant.setValue(event.getNewValue());
+            String newValue = event.getNewValue();
+            String type = constant.getType();
+
+            if (isValidValue(newValue, type)) {
+                constant.setValue(newValue);
+            } else {
+                // Show an alert if the value is invalid
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Invalid Value");
+                alert.setHeaderText("Invalid Constant Value");
+                alert.setContentText("The value must match the selected data type.");
+                alert.showAndWait();
+                constantsTableView.refresh(); // Revert to the old value
+            }
         });
 
         constantsTableView.setItems(constants);
@@ -88,17 +101,53 @@ public class ConstantsController {
         deleteConstantButton.setOnAction(event -> deleteSelectedConstant());
     }
 
+    private boolean isValidValue(String value, String type) {
+        try {
+            switch (type) {
+                case "Integer":
+                    Integer.parseInt(value);
+                    break;
+                case "Double":
+                    Double.parseDouble(value);
+                    break;
+                case "Boolean":
+                    if (!value.equalsIgnoreCase("true") && !value.equalsIgnoreCase("false")) {
+                        throw new IllegalArgumentException("Invalid Boolean value");
+                    }
+                    break;
+                    
+                case "String":
+                    // Strings are always valid KINDA
+                    // TODO: FIX "KINDA" 
+                    break;
+                default:
+                    return false;
+            }
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private void addNewConstant() {
         String name = nameField.getText();
         String type = typeComboBox.getValue();
         String value = valueField.getText();
 
-        // Validate name to fit Java variable naming conventions and not match Java keywords
+        // Validate name and value
         if (name != null && !name.isEmpty() && name.matches("[a-zA-Z_$][a-zA-Z\\d_$]*") && !JAVA_KEYWORDS.contains(name)) {
-            if (type != null && value != null) {
+            if (type != null && value != null && isValidValue(value, type)) {
                 constants.add(new Constant(name, type, value));
                 nameField.clear();
+                typeComboBox.setValue(null);
                 valueField.clear();
+            } else {
+                // Show an alert if the value is invalid
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Invalid Value");
+                alert.setHeaderText("Invalid Constant Value");
+                alert.setContentText("The value must match the selected data type.");
+                alert.showAndWait();
             }
         } else {
             // Show an alert if the name is invalid
