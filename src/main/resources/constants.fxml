@@ -11,15 +11,17 @@
                     <TableColumn fx:id="nameColumn" text="Name" />
                     <TableColumn fx:id="typeColumn" text="Type" />
                     <TableColumn fx:id="valueColumn" text="Value" />
+                    <TableColumn fx:id="descriptionColumn" text="Description" /> <!-- Add description column -->
                 </columns>
             </TableView>
             <HBox spacing="10" alignment="center">
                 <TextField fx:id="nameField" promptText="Name" />
-                <ComboBox fx:id="typeComboBox" promptText="Type" />
+                <ComboBox fx:id="typeComboBox" promptText="Type" prefWidth="120" /> <!-- Set fixed width -->
                 <StackPane>
                     <TextField fx:id="valueField" promptText="Value" />
                     <CheckBox fx:id="booleanSwitch" text="True/False" visible="false" />
                 </StackPane>
+                <TextField fx:id="descriptionField" promptText="Description" /> <!-- Add description input -->
                 <Button text="Add" fx:id="addConstantButton" />
             </HBox>
         </VBox>

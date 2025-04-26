@@ -2,10 +2,12 @@ package motion.profile.mapper;
 
 import atlantafx.base.theme.PrimerDark;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 
 public class App extends Application {
 
@@ -13,27 +15,30 @@ public class App extends Application {
     public static ConstantsController cController;
 
     @Override
-    public void start(Stage stage) throws Exception {
-        Application.setUserAgentStylesheet(new PrimerDark().getUserAgentStylesheet());
-        FXMLLoader loader2 = new FXMLLoader(getClass().getResource("/constants.fxml"));
-        Scene scene2 = new Scene(loader2.load());
-        cController = loader2.getController();
-        stage.setTitle("Constants");
-        stage.setScene(scene2);
+    public void start(Stage stage) {
+        try {
+            Application.setUserAgentStylesheet(new PrimerDark().getUserAgentStylesheet());
 
-        // TODO: see if this is necessary once we build
+            // Load the main content
+            FXMLLoader loader2 = new FXMLLoader(getClass().getResource("/constants.fxml"));
+            Region mainContent = loader2.load();
+            cController = loader2.getController();
 
-        // Temporarily set the stage to always be on top
-        stage.setAlwaysOnTop(true);
-        stage.show();
+            // Combine the title bar and main content
+            VBox root = new VBox();
+            root.setStyle("-fx-padding: 0; -fx-spacing: 0;");
+            root.getChildren().addAll(mainContent);
 
-        // Bring the stage to the front after it has been shown and then set always on
-        // top to false
-        Platform.runLater(() -> {
-            stage.toFront();
-            stage.setAlwaysOnTop(false);
-        });
+            // Create the scene
+            Scene scene = new Scene(root);
 
+            // Set the stage properties
+            stage.setScene(scene);
+            stage.getIcons().add(new Image(getClass().getResourceAsStream("/icon.png")));
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace(); // Print the exception to debug the issue
+        }
     }
 
     public static void main(String[] args) {

@@ -20,6 +20,8 @@ public class ConstantsController {
     @FXML
     private TableColumn<Constant, String> valueColumn;
     @FXML
+    private TableColumn<Constant, String> descriptionColumn; // Add description column
+    @FXML
     private Button addConstantButton;
     @FXML
     private ComboBox<String> typeComboBox;
@@ -31,17 +33,20 @@ public class ConstantsController {
     private TextField valueField;
 
     @FXML
+    private TextField descriptionField; // Add description input field
+
+    @FXML
     private CheckBox booleanSwitch; // Add a CheckBox for Boolean input
 
     private ObservableList<Constant> constants = FXCollections.observableArrayList();
 
     private static final ObservableList<String> JAVA_KEYWORDS = FXCollections.observableArrayList(
-        "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue",
-        "default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for", "goto", "if",
-        "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "null", "package",
-        "private", "protected", "public", "return", "short", "static", "strictfp", "super", "switch", "synchronized",
-        "this", "throw", "throws", "transient", "try", "void", "volatile", "while", "true", "false"
-    );
+            "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue",
+            "default", "do", "double", "else", "enum", "extends", "final", "finally", "float", "for", "goto", "if",
+            "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "null", "package",
+            "private", "protected", "public", "return", "short", "static", "strictfp", "super", "switch",
+            "synchronized", "this", "throw", "throws", "transient", "try", "void", "volatile", "while", "true",
+            "false");
 
     @FXML
     public void initialize() {
@@ -52,11 +57,18 @@ public class ConstantsController {
         nameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
         typeColumn.setCellValueFactory(cellData -> cellData.getValue().typeProperty());
         valueColumn.setCellValueFactory(cellData -> cellData.getValue().valueProperty());
+        descriptionColumn.setCellValueFactory(cellData -> cellData.getValue().descriptionProperty());
+        descriptionColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        descriptionColumn.setOnEditCommit(event -> {
+            Constant constant = event.getRowValue();
+            constant.setDescription(event.getNewValue());
+        });
 
         nameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-        
+
         // Set predefined options for the type column
-        ObservableList<String> typeOptions = FXCollections.observableArrayList("String", "Integer", "Double", "Boolean");
+        ObservableList<String> typeOptions = FXCollections.observableArrayList("String", "Integer", "Double",
+                "Boolean");
         typeColumn.setCellFactory(ComboBoxTableCell.forTableColumn(typeOptions));
         typeColumn.setOnEditCommit(event -> {
             Constant constant = event.getRowValue();
@@ -139,13 +151,15 @@ public class ConstantsController {
         // Bind column widths to the table width
         constantsTableView.widthProperty().addListener((obs, oldWidth, newWidth) -> {
             double tableWidth = newWidth.doubleValue();
-            nameColumn.setPrefWidth(tableWidth * 0.25);
-            typeColumn.setPrefWidth(tableWidth * 0.25);
-            valueColumn.setPrefWidth(tableWidth * 0.50);
+            nameColumn.setPrefWidth(tableWidth * 0.20);
+            typeColumn.setPrefWidth(tableWidth * 0.20);
+            valueColumn.setPrefWidth(tableWidth * 0.30);
+            descriptionColumn.setPrefWidth(tableWidth * 0.30); // Adjust width for description column
         });
 
-        // Populate typeComboBox with predefined options
+        // Default the typeComboBox to "String"
         typeComboBox.setItems(typeOptions);
+        typeComboBox.setValue("String");
 
         // Add a listener to typeComboBox to toggle between TextField and CheckBox
         typeComboBox.valueProperty().addListener((obs, oldType, newType) -> {
@@ -208,7 +222,7 @@ public class ConstantsController {
                         throw new IllegalArgumentException("Invalid Boolean value");
                     }
                     break;
-                    
+
                 case "String":
                     // Strings are always valid KINDA
                     // TODO: FIX "KINDA" like escape sequences...
@@ -226,6 +240,7 @@ public class ConstantsController {
         String name = nameField.getText();
         String type = typeComboBox.getValue();
         String value;
+        String description = descriptionField.getText(); // Get description input
 
         // Get value from the appropriate input field
         if ("Boolean".equals(type)) {
@@ -235,11 +250,13 @@ public class ConstantsController {
         }
 
         // Validate name and value
-        if (name != null && !name.isEmpty() && name.matches("[a-zA-Z_$][a-zA-Z\\d_$]*") && !JAVA_KEYWORDS.contains(name)) {
+        if (name != null && !name.isEmpty() && name.matches("[a-zA-Z_$][a-zA-Z\\d_$]*")
+                && !JAVA_KEYWORDS.contains(name)) {
             if (type != null && value != null && isValidValue(value, type)) {
-                constants.add(new Constant(name, type, value));
+                constants.add(new Constant(name, type, value, description)); // Include description
                 nameField.clear();
                 valueField.clear();
+                descriptionField.clear(); // Clear description field
                 booleanSwitch.setSelected(false);
             } else {
                 // Show an alert if the value is invalid
