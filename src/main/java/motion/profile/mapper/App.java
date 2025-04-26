@@ -24,18 +24,15 @@ public class App extends Application {
             Region mainContent = loader2.load();
             cController = loader2.getController();
 
-            // Combine the title bar and main content
-            VBox root = new VBox();
-            root.setStyle("-fx-padding: 0; -fx-spacing: 0;");
-            root.getChildren().addAll(mainContent);
-
             // Create the scene
-            Scene scene = new Scene(root);
+            Scene scene = new Scene(mainContent);
 
             // Set the stage properties
+            stage.setTitle("Robot Configuration Tool"); // Set the window title
             stage.setScene(scene);
             stage.getIcons().add(new Image(getClass().getResourceAsStream("/icon.png")));
             stage.show();
+            FXWinUtil.setDarkMode(stage, true); // Set dark mode for the stage
         } catch (Exception e) {
             e.printStackTrace(); // Print the exception to debug the issue
         }

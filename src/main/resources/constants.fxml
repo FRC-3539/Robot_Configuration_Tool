@@ -6,22 +6,22 @@
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="motion.profile.mapper.ConstantsController">
     <center>
         <VBox spacing="10" alignment="center" style="-fx-padding: 10;">
-            <TableView fx:id="constantsTableView" VBox.vgrow="ALWAYS">
+            <TableView fx:id="constantsTableView" VBox.vgrow="ALWAYS"> <!-- Allow TableView to grow -->
                 <columns>
                     <TableColumn fx:id="nameColumn" text="Name" />
                     <TableColumn fx:id="typeColumn" text="Type" />
                     <TableColumn fx:id="valueColumn" text="Value" />
-                    <TableColumn fx:id="descriptionColumn" text="Description" /> <!-- Add description column -->
+                    <TableColumn fx:id="descriptionColumn" text="Description" />
                 </columns>
             </TableView>
             <HBox spacing="10" alignment="center">
                 <TextField fx:id="nameField" promptText="Name" />
-                <ComboBox fx:id="typeComboBox" promptText="Type" prefWidth="120" /> <!-- Set fixed width -->
-                <StackPane>
+                <ComboBox fx:id="typeComboBox" promptText="Type" prefWidth="120" />
+                <StackPane HBox.hgrow="ALWAYS">
                     <TextField fx:id="valueField" promptText="Value" />
                     <CheckBox fx:id="booleanSwitch" text="True/False" visible="false" />
                 </StackPane>
-                <TextField fx:id="descriptionField" promptText="Description" /> <!-- Add description input -->
+                <TextField fx:id="descriptionField" promptText="Description" HBox.hgrow="ALWAYS" />
                 <Button text="Add" fx:id="addConstantButton" />
             </HBox>
         </VBox>

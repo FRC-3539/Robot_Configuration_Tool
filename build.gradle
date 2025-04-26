@@ -52,8 +52,8 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-annotations:2.13.0'
     implementation 'com.fasterxml.jackson.core:jackson-core:2.13.0'
 
-    implementation 'org.projectlombok:lombok:1.18.28' // Add Lombok library
-    annotationProcessor 'org.projectlombok:lombok:1.18.28' // Enable annotation processing for Lombok
+    implementation 'org.projectlombok:lombok:1.18.28' // Ensure the latest version of Lombok
+    annotationProcessor 'org.projectlombok:lombok:1.18.28' // Enable annotation processing
 
     implementation 'net.java.dev.jna:jna:5.13.0' // Add JNA library
     implementation 'net.java.dev.jna:jna-platform:5.13.0' // Add JNA platform library
@@ -63,13 +63,19 @@ dependencies {
 // Apply a specific Java toolchain to ease working on different environments.
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(17) // Ensure this matches your installed Java version
     }
 }
 
 application {
     // Define the main class for the application.
     mainClass = 'motion.profile.mapper.App'
+
+    applicationDefaultJvmArgs = [
+        '--add-opens', 'javafx.graphics/javafx.stage=ALL-UNNAMED',
+        '--add-opens', 'javafx.graphics/com.sun.javafx.tk=ALL-UNNAMED',
+        '--add-exports', 'javafx.graphics/com.sun.javafx.tk.quantum=ALL-UNNAMED' // Allow access to quantum package
+    ]
 }
 
 tasks.named('test') {
