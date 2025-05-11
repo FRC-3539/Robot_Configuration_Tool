@@ -1,20 +1,28 @@
-package motion.profile.mapper;
+package robot.configuration.utils;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public class Constant {
+public class FXConstant {
 
     private final StringProperty name;
     private final StringProperty type;
     private final StringProperty value;
-    private final StringProperty description; // Add description property
+    private final StringProperty description;
 
-    public Constant(String name, String type, String value, String description) {
-        this.name = new SimpleStringProperty(name);
-        this.type = new SimpleStringProperty(type);
-        this.value = new SimpleStringProperty(value);
-        this.description = new SimpleStringProperty(description); // Initialize description
+    public FXConstant(String name, String type, String value, String description) {
+        this(new Constant(name, type, value, description));
+    }
+
+    public FXConstant(Constant constant) {
+        this.name = new SimpleStringProperty(constant.getName());
+        this.type = new SimpleStringProperty(constant.getType());
+        this.value = new SimpleStringProperty(constant.getValue());
+        this.description = new SimpleStringProperty(constant.getDescription());
+    }
+
+    public Constant toConstant() {
+        return new Constant(name.get(), type.get(), value.get(), description.get());
     }
 
     public StringProperty nameProperty() {

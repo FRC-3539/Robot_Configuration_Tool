@@ -1,4 +1,4 @@
-package motion.profile.mapper;
+package robot.configuration.systems;
 
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;

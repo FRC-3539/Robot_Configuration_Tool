@@ -57,6 +57,8 @@ dependencies {
 
     implementation 'net.java.dev.jna:jna:5.13.0' // Add JNA library
     implementation 'net.java.dev.jna:jna-platform:5.13.0' // Add JNA platform library
+    implementation group: 'org.ini4j', name: 'ini4j', version: '0.5.4'
+
     
 }
 
@@ -69,7 +71,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = 'motion.profile.mapper.App'
+    mainClass = 'robot.configuration.main.App'
 
     applicationDefaultJvmArgs = [
         '--add-opens', 'javafx.graphics/javafx.stage=ALL-UNNAMED',

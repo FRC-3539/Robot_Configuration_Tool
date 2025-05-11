@@ -1,4 +1,4 @@
-package motion.profile.mapper;
+package robot.configuration.main;
 
 import atlantafx.base.theme.PrimerDark;
 import javafx.application.Application;
@@ -6,8 +6,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import robot.configuration.controllers.ConstantsController;
+import robot.configuration.systems.FXWinUtil;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 
 public class App extends Application {
 

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="robot.configuration.controllers.SettingsController" spacing="10" alignment="center" style="-fx-padding: 10;">
+    <Label text="Project Folder:" />
+    <HBox spacing="10">
+        <TextField fx:id="projectFolderField" promptText="Enter project folder path" HBox.hgrow="ALWAYS" />
+        <Button text="Browse" onAction="#browseProjectFolder" />
+    </HBox>
+    <Label text="Team Number:" />
+    <TextField fx:id="teamNumberField" promptText="Enter team number" />
+    <Label text="Remote Username:" />
+    <TextField fx:id="remoteUsernameField" promptText="Enter remote username" />
+    <Label text="Remote Password:" />
+    <PasswordField fx:id="remotePasswordField" promptText="Enter remote password" />
+    <Label text="Remote Deploy Folder:" />
+    <TextField fx:id="remoteDeployFolderField" promptText="Enter remote deploy folder path" />
+    <HBox spacing="10" alignment="center">
+        <Button text="Save" onAction="#saveSettings" />
+        <Button text="Cancel" onAction="#cancelSettings" />
+    </HBox>
+</VBox>

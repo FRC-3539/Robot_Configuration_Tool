@@ -3,10 +3,22 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="motion.profile.mapper.ConstantsController">
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="robot.configuration.controllers.ConstantsController">
+    <top>
+        <MenuBar fx:id="menuBar" />
+    </top>
+    <left>
+        <VBox spacing="10" alignment="center" style="-fx-padding: 10 0 10 10;">
+            <TableView fx:id="filesTableView" prefWidth="200" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="fileNameColumn" text="Files" />
+            </columns>
+            </TableView>
+        </VBox>
+    </left>
     <center>
         <VBox spacing="10" alignment="center" style="-fx-padding: 10;">
-            <TableView fx:id="constantsTableView" VBox.vgrow="ALWAYS"> <!-- Allow TableView to grow -->
+            <TableView fx:id="constantsTableView" VBox.vgrow="ALWAYS">
                 <columns>
                     <TableColumn fx:id="nameColumn" text="Name" />
                     <TableColumn fx:id="typeColumn" text="Type" />
