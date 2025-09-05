@@ -85,11 +85,41 @@ public class ConstantsController {
 
         nameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
         ObservableList<String> typeOptions = FXCollections.observableArrayList("String", "int", "double", "boolean");
-        typeColumn.setCellFactory(ComboBoxTableCell.forTableColumn(typeOptions));
+        // Always show ComboBox for type column, not just on edit
+        typeColumn.setCellFactory(col -> {
+            return new TableCell<FXConstant, String>() {
+                private final ComboBox<String> comboBox = new ComboBox<>(typeOptions);
+                {
+                    comboBox.setMaxWidth(Double.MAX_VALUE);
+                    comboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+                        if (getTableRow() != null && getTableRow().getItem() != null && newVal != null) {
+                            FXConstant constant = (FXConstant) getTableRow().getItem();
+                            if (!newVal.equals(constant.getType())) {
+                                constant.setType(newVal);
+                                // Optionally trigger value conversion here if needed
+                                getTableView().refresh();
+                            }
+                        }
+                    });
+                }
+
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setGraphic(null);
+                        setText(null);
+                    } else {
+                        comboBox.setValue(item);
+                        setGraphic(comboBox);
+                        setText(null);
+                    }
+                }
+            };
+        });
         typeColumn.setOnEditCommit(event -> {
             FXConstant constant = event.getRowValue();
             String newType = event.getNewValue();
-
             constant.setType(newType);
             if ("boolean".equals(newType)) {
                 constant.setValue("" + Boolean.parseBoolean(constant.getValue()));
@@ -99,7 +129,6 @@ public class ConstantsController {
                 } catch (NumberFormatException e) {
                     constant.setValue("0");
                 }
-
             } else if ("double".equals(newType)) {
                 try {
                     constant.setValue("" + Double.parseDouble(constant.getValue()));
@@ -109,7 +138,6 @@ public class ConstantsController {
             } else if ("String".equals(newType)) {
                 constant.setValue(constant.getValue());
             }
-
             constantsTableView.refresh();
         });
         valueColumn.setCellFactory(column -> new TableCell<>() {
@@ -132,6 +160,23 @@ public class ConstantsController {
                         getTableView().refresh();
                     }
                 });
+
+                // Make the text field look editable
+                textField.setEditable(true);
+                // textField.setStyle(
+                // "-fx-background-color: -fx-control-inner-background; -fx-border-color:
+                // -fx-box-border; -fx-border-width: 1;");
+                // textField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+                // if (newVal) {
+                // textField.setStyle(
+                // "-fx-background-color: #e6f7ff; -fx-border-color: #1890ff;
+                // -fx-border-width:2;");
+                // } else {
+                // textField.setStyle(
+                // "-fx-background-color: -fx-control-inner-background; -fx-border-color:
+                // -fx-box-border; -fx-border-width: 1;");
+                // }
+                // });
             }
 
             @Override
