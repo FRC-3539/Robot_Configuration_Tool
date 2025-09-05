@@ -83,6 +83,8 @@ public class ConstantsController {
             constant.setDescription(event.getNewValue());
         });
 
+
+        // Use same cell factory for name and value column for the same look/funcion
         nameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
         ObservableList<String> typeOptions = FXCollections.observableArrayList("String", "int", "double", "boolean");
         // Always show ComboBox for type column, not just on edit
