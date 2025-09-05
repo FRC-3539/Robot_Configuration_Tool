@@ -38,12 +38,17 @@ public class FXINI {
     }
 
     public INI toINI() {
-        INI ini = new INI(filePath);
-        ini.constants = new ArrayList<>();
+        // Convert FXConstant to Constant
+        ArrayList<Constant> constantList = new ArrayList<>();
         for (FXConstant fxConstant : constants) {
-            ini.constants.add(fxConstant.toConstant());
+            constantList.add(fxConstant.toConstant());
         }
+        INI ini = new INI(this.filePath, constantList, new Date());
         return ini;
+    }
+
+    public void setFilePath(String absolutePath) {
+        this.filePath = absolutePath;
     }
 
 }

@@ -3,9 +3,9 @@ package robot.configuration.utils;
 public class Constant {
 
     private String name;
-    private String type;
     private String value;
     private String description;
+    private String type;
 
     public Constant(String name, String type, String value, String description) {
         this.name = name;
@@ -24,10 +24,6 @@ public class Constant {
 
     public String getType() {
         return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public String getValue() {

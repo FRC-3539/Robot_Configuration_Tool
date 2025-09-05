@@ -11,18 +11,22 @@ public class FXConstant {
     private final StringProperty description;
 
     public FXConstant(String name, String type, String value, String description) {
-        this(new Constant(name, type, value, description));
+        this.name = new SimpleStringProperty(name);
+        this.type = new SimpleStringProperty(type);
+        this.value = new SimpleStringProperty(value != null ? value.toString() : "");
+        this.description = new SimpleStringProperty(description);
     }
 
     public FXConstant(Constant constant) {
-        this.name = new SimpleStringProperty(constant.getName());
-        this.type = new SimpleStringProperty(constant.getType());
-        this.value = new SimpleStringProperty(constant.getValue());
-        this.description = new SimpleStringProperty(constant.getDescription());
+        this(constant.getName(), constant.getType(), constant.getValue(), constant.getDescription());
     }
 
     public Constant toConstant() {
-        return new Constant(name.get(), type.get(), value.get(), description.get());
+        return new Constant(
+                name.get(),
+                type.get(),
+                value.get(),
+                description.get());
     }
 
     public StringProperty nameProperty() {

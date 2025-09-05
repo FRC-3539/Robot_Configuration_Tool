@@ -84,8 +84,7 @@ public class ConstantsController {
         });
 
         nameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-        ObservableList<String> typeOptions = FXCollections.observableArrayList("String", "int", "double",
-                "boolean");
+        ObservableList<String> typeOptions = FXCollections.observableArrayList("String", "int", "double", "boolean");
         typeColumn.setCellFactory(ComboBoxTableCell.forTableColumn(typeOptions));
         typeColumn.setOnEditCommit(event -> {
             FXConstant constant = event.getRowValue();
@@ -93,21 +92,44 @@ public class ConstantsController {
 
             constant.setType(newType);
             if ("boolean".equals(newType)) {
-                constant.setValue("false");
-            } else {
-                constant.setValue("");
+                constant.setValue("" + Boolean.parseBoolean(constant.getValue()));
+            } else if ("int".equals(newType)) {
+                try {
+                    constant.setValue("" + Integer.parseInt(constant.getValue()));
+                } catch (NumberFormatException e) {
+                    constant.setValue("0");
+                }
+
+            } else if ("double".equals(newType)) {
+                try {
+                    constant.setValue("" + Double.parseDouble(constant.getValue()));
+                } catch (NumberFormatException e) {
+                    constant.setValue("0.0");
+                }
+            } else if ("String".equals(newType)) {
+                constant.setValue(constant.getValue());
             }
 
             constantsTableView.refresh();
         });
         valueColumn.setCellFactory(column -> new TableCell<>() {
             private final CheckBox checkBox = new CheckBox();
+            private final TextField textField = new TextField();
 
             {
                 checkBox.setOnAction(event -> {
                     FXConstant constant = getTableView().getItems().get(getIndex());
                     if ("boolean".equals(constant.getType())) {
                         constant.setValue(Boolean.toString(checkBox.isSelected()));
+                        getTableView().refresh();
+                    }
+                });
+
+                textField.setOnAction(event -> {
+                    FXConstant constant = getTableView().getItems().get(getIndex());
+                    if (!"boolean".equals(constant.getType())) {
+                        constant.setValue(textField.getText());
+                        getTableView().refresh();
                     }
                 });
             }
@@ -126,8 +148,9 @@ public class ConstantsController {
                         setGraphic(checkBox);
                         setText(null);
                     } else {
-                        setGraphic(null);
-                        setText(item);
+                        textField.setText(item);
+                        setGraphic(textField);
+                        setText(null);
                     }
                 }
             }
@@ -248,7 +271,13 @@ public class ConstantsController {
         MenuItem openFileMenuItem = new MenuItem("Open File");
         openFileMenuItem.setOnAction(event -> openFile());
 
-        fileMenu.getItems().addAll(settingsMenuItem, openFileMenuItem);
+        MenuItem newFileMenuItem = new MenuItem("New File");
+        newFileMenuItem.setOnAction(event -> newFile());
+
+        MenuItem saveFileMenuItem = new MenuItem("Save");
+        saveFileMenuItem.setOnAction(event -> saveSelectedFile());
+
+        fileMenu.getItems().addAll(settingsMenuItem, openFileMenuItem, newFileMenuItem, saveFileMenuItem);
         menuBar.getMenus().add(fileMenu);
     }
 
@@ -267,9 +296,15 @@ public class ConstantsController {
         }
     }
 
+    private void newFile() {
+        FXINI ini = new FXINI("newFile.ini");
+        openedFiles.add(ini);
+    }
+
     private void openFile() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open File");
+        fileChooser.setInitialDirectory(new File(systemSettings.getProjectFolder()));
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Configuration Files", "*.ini"));
         File selectedFile = fileChooser.showOpenDialog(filesTableView.getScene().getWindow());
 
@@ -358,6 +393,26 @@ public class ConstantsController {
             alert.setHeaderText("Invalid Constant Name");
             alert.setContentText("The name must follow Java variable naming conventions and cannot be a Java keyword.");
             alert.showAndWait();
+        }
+    }
+
+    private void saveSelectedFile() {
+        FXINI selectedFile = filesTableView.getSelectionModel().getSelectedItem();
+        if (selectedFile == null) {
+            showError("No File Selected", "Please select a file to save.");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save File");
+        fileChooser.setInitialDirectory(new File(systemSettings.getProjectFolder()));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Configuration Files", "*.ini"));
+        fileChooser.setInitialFileName(selectedFile.getFileName() + ".ini");
+        File file = fileChooser.showSaveDialog(filesTableView.getScene().getWindow());
+
+        if (file != null) {
+            selectedFile.setFilePath(file.getAbsolutePath());
+            selectedFile.toINI().save(); // This will save the file at the new location
         }
     }
 
