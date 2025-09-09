@@ -1,5 +1,6 @@
 package robot.configuration.utils;
 
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 
 import java.io.File;
@@ -8,15 +9,22 @@ import java.util.Date;
 
 public class FXINI {
     String filePath;
+    SimpleStringProperty fileName = new SimpleStringProperty("");
     ObservableList<FXConstant> constants;
     Date lastModified;
+    boolean temporaryFilePath = false;
 
     public FXINI(String filePath) {
         this(new INI(filePath));
     }
 
+    public FXINI(String filePath, boolean temporaryFilePath) {
+        this(new INI(filePath));
+        this.temporaryFilePath = temporaryFilePath;
+    }
+
     public FXINI(INI ini) {
-        this.filePath = ini.filePath;
+        setFilePath(ini.filePath);
         constants = javafx.collections.FXCollections.observableArrayList();
         for (Constant constant : ini.constants) {
             this.constants.add(new FXConstant(constant));
@@ -49,6 +57,26 @@ public class FXINI {
 
     public void setFilePath(String absolutePath) {
         this.filePath = absolutePath;
+        String name = new File(filePath).getName();
+        int dotIndex = name.lastIndexOf('.');
+        this.fileName.set((dotIndex == -1) ? name : name.substring(0, dotIndex));
+    }
+
+    public void setFilePath(String absolutePath, boolean temporaryFilePath) {
+        setFilePath(absolutePath);
+        this.temporaryFilePath = temporaryFilePath;
+    }
+
+    public boolean isTemporaryFilePath() {
+        return temporaryFilePath;
+    }
+
+    public String getFilePath() {
+        return this.filePath;
+    }
+
+    public SimpleStringProperty fileNameProperty() {
+        return fileName;
     }
 
 }

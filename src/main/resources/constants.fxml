@@ -5,7 +5,17 @@
 
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="robot.configuration.controllers.ConstantsController">
     <top>
-        <MenuBar fx:id="menuBar" />
+        <MenuBar fx:id="menuBar">
+            <menus>
+                <Menu text="File">
+                    <MenuItem fx:id="settingsMenuItem" text="Settings" />
+                    <MenuItem fx:id="openFileMenuItem" text="Open File" />
+                    <MenuItem fx:id="newFileMenuItem" text="New File" />
+                    <MenuItem fx:id="saveFileMenuItem" text="Save" accelerator="Ctrl+S" />
+                    <MenuItem fx:id="saveAllFilesMenuItem" text="Save All" />
+                </Menu>
+            </menus>
+        </MenuBar>
     </top>
     <left>
         <VBox spacing="10" alignment="center" style="-fx-padding: 10 0 10 10;">
