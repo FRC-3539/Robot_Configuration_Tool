@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.control.cell.ComboBoxTableCell;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.fxml.FXMLLoader;
@@ -99,6 +100,27 @@ public class ConstantsController {
         // Always show ComboBox for type column, not just on edit
         typeColumn.setCellFactory(col -> {
             return new ComboBoxTableCell<FXConstant, String>(typeOptions) {
+                @Override
+                public void startEdit() {
+                    setStyle(
+                            "-fx-background-color: -color-dark; -fx-border-color: -color-accent-emphasis; -fx-border-width: 1px; -fx-border-radius: 1px;");
+                    super.startEdit();
+
+                }
+
+                @Override
+                public void commitEdit(String newValue) {
+                    setStyle(""); // Reset style to default
+
+                    super.commitEdit(newValue);
+                }
+
+                @Override
+                public void cancelEdit() {
+                    setStyle(""); // Reset style to default
+                    super.cancelEdit();
+                }
+
             };
         });
         typeColumn.setOnEditCommit(event -> {
@@ -126,21 +148,40 @@ public class ConstantsController {
         });
         valueColumn.setCellFactory(col -> new TableCell<FXConstant, String>() {
             private final CheckBox checkBox = new CheckBox();
-            private TextField textField;
+            private TextField textField = new TextField();
+            private String originalValue;
 
             {
                 // Toggle boolean directly in the model
                 checkBox.setOnAction(e -> {
-                    FXConstant row = getTableView().getItems().get(getIndex());
+                    FXConstant row = this.getTableRow().getItem();
                     if (row != null && "boolean".equals(row.getType())) {
                         row.setValue(Boolean.toString(checkBox.isSelected()));
+                    }
+                });
+                textField.setOnKeyPressed(event -> {
+                    switch (event.getCode()) {
+                        case ESCAPE:
+                            event.consume();
+                            cancelEdit();
+                            break;
+                        case ENTER:
+                            commitEdit(textField.getText());
+                            break;
+                        default:
+                            break;
+                    }
+                });
+                textField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
+                    if (!isNowFocused && wasFocused) {
+                        commitEdit(textField.getText());
                     }
                 });
             }
 
             private boolean isBooleanCell() {
-                FXConstant row = getTableView() == null ? null : getTableView().getItems().get(getIndex());
-                return row != null && "boolean".equals(row.getType());
+
+                return this.getTableRow().getItem() != null && "boolean".equals(this.getTableRow().getItem().getType());
             }
 
             @Override
@@ -150,39 +191,46 @@ public class ConstantsController {
                 }
                 super.startEdit();
 
-                if (textField == null) {
-                    textField = new TextField();
-                    textField.getStyleClass().add("text-field"); // <-- ensures default styling
-                    textField.setOnAction(e -> commitEdit(textField.getText()));
-                    textField.focusedProperty().addListener((obs, was, isNow) -> {
-                        if (!isNow && isEditing())
-                            commitEdit(textField.getText());
-                    });
-                }
+                setStyle(
+                        "-fx-background-color: -color-dark; -fx-border-color: -color-accent-emphasis; -fx-border-width: 1px; -fx-border-radius: 1px;");
 
-                textField.setText(getItem() == null ? "" : getItem());
+                originalValue = getItem();
+
+                textField.setText(originalValue == null ? "" : originalValue);
                 setGraphic(textField);
                 setText(null);
                 setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
                 textField.requestFocus();
                 textField.selectAll();
+
             }
 
             @Override
             public void cancelEdit() {
-                super.cancelEdit();
-                updateItem(getItem(), false); // redraw as non-editing
+                setStyle(""); // Reset style to default
+                if (!isBooleanCell()) {
+                    textField.setText(originalValue);
+                }
+                updateItem(originalValue, false); // revert to original value
             }
 
             @Override
             public void commitEdit(String newValue) {
-                super.commitEdit(newValue);
-                // Write to model immediately (also fires TableColumn's onEditCommit)
-                FXConstant row = getTableView().getItems().get(getIndex());
-                if (row != null && !isBooleanCell()) {
-                    row.setValue(newValue);
+                setStyle(""); // Reset style to default
+                FXConstant constant = this.getTableRow().getItem();
+                String type = constant.getType();
+
+                if (isValidValue(newValue, type)) {
+                    constant.setValue(newValue);
+                } else {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Invalid Value");
+                    alert.setHeaderText("Invalid Constant Value");
+                    alert.setContentText("The value must match the selected data type.");
+                    alert.showAndWait();
+                    constantsTableView.refresh();
                 }
-                setContentDisplay(ContentDisplay.TEXT_ONLY);
+                super.commitEdit(constant.getValue());
             }
 
             @Override
@@ -202,45 +250,11 @@ public class ConstantsController {
                     setGraphic(checkBox);
                     setText(null);
                     setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-                    // The cell itself isn’t “editable” here; the checkbox is the editor.
                 } else {
-                    // Render text or editor depending on editing state
-                    if (isEditing()) {
-                        if (textField == null) {
-                            textField = new TextField();
-                            textField.setOnAction(e -> commitEdit(textField.getText()));
-                            textField.focusedProperty().addListener((obs, was, isNow) -> {
-                                if (!isNow && isEditing())
-                                    commitEdit(textField.getText());
-                            });
-                        }
-                        textField.setText(item);
-                        setGraphic(textField);
-                        setText(null);
-                        setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-                    } else {
-                        setText(item);
-                        setGraphic(null);
-                        setContentDisplay(ContentDisplay.TEXT_ONLY);
-                    }
+                    setText(item);
+                    setGraphic(null);
+                    setContentDisplay(ContentDisplay.TEXT_ONLY);
                 }
-            }
-        });
-
-        valueColumn.setOnEditCommit(event -> {
-            FXConstant constant = event.getRowValue();
-            String newValue = event.getNewValue();
-            String type = constant.getType();
-
-            if (isValidValue(newValue, type)) {
-                constant.setValue(newValue);
-            } else {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Invalid Value");
-                alert.setHeaderText("Invalid Constant Value");
-                alert.setContentText("The value must match the selected data type.");
-                alert.showAndWait();
-                constantsTableView.refresh();
             }
         });
 
@@ -283,38 +297,45 @@ public class ConstantsController {
         addConstantButton.setOnAction(event -> addNewConstant());
 
         constantsTableView.setRowFactory(tv -> {
-
             TableRow<FXConstant> row = new TableRow<>();
-            ContextMenu contextMenu = new ContextMenu();
+            ContextMenu rowContextMenu = new ContextMenu();
 
             MenuItem deleteItem = new MenuItem("Delete");
             deleteItem.setOnAction(event -> {
-                // Ensure a file is selected before adding a constant
                 FXINI selectedFile = filesTableView.getSelectionModel().getSelectedItem();
                 if (selectedFile == null) {
                     showError("No File Selected", "Please select a file before adding a constant.");
                     return;
                 }
-
                 FXConstant selected = row.getItem();
                 if (selected != null) {
-                    if (selectedFile != null) {
-                        selectedFile.removeConstant(selected);
-                    }
+                    selectedFile.removeConstant(selected);
                 }
             });
+            rowContextMenu.getItems().add(deleteItem);
 
-            contextMenu.getItems().add(deleteItem);
+            // Flag to indicate if row context menu is opening
+            final boolean[] rowContextMenuOpening = { false };
 
             row.setOnContextMenuRequested(event -> {
                 if (!row.isEmpty()) {
-                    contextMenu.show(row, event.getScreenX(), event.getScreenY());
+                    rowContextMenuOpening[0] = true;
+                    rowContextMenu.show(row, event.getScreenX(), event.getScreenY());
                 }
             });
 
+            rowContextMenu.setOnHidden(e -> rowContextMenuOpening[0] = false);
+
             row.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
                 if (event.getButton() == MouseButton.PRIMARY) {
-                    contextMenu.hide();
+                    rowContextMenu.hide();
+                }
+            });
+
+            // Prevent fileTable context menu if row context menu is opening
+            filesTableView.setOnContextMenuRequested(fileEvent -> {
+                if (rowContextMenuOpening[0]) {
+                    fileEvent.consume();
                 }
             });
 
@@ -331,12 +352,37 @@ public class ConstantsController {
                 loadFileConstants(newFile);
             }
         });
+
+        ContextMenu fileTableContextMenu = new ContextMenu();
+        MenuItem openItem = new MenuItem("Open File");
+        MenuItem newItem = new MenuItem("New File");
+
+        openItem.setOnAction(event -> {
+            openFile();
+        });
+        newItem.setOnAction(event -> {
+            newFile();
+        });
+        fileTableContextMenu.getItems().add(openItem);
+        fileTableContextMenu.getItems().add(newItem);
+        filesTableView.setContextMenu(fileTableContextMenu);
+
         filesTableView.setRowFactory(tv -> {
 
             TableRow<FXINI> row = new TableRow<>();
             ContextMenu contextMenu = new ContextMenu();
 
             MenuItem closeItem = new MenuItem("Close");
+            MenuItem saveItem = new MenuItem("Save");
+            saveItem.setAccelerator(KeyCombination.keyCombination("Ctrl+S"));
+
+            saveItem.setOnAction(event -> {
+                FXINI selected = row.getItem();
+                if (selected != null) {
+                    saveFile(selected);
+                }
+            });
+
             closeItem.setOnAction(event -> {
                 FXINI selected = row.getItem();
                 if (selected != null) {
@@ -345,12 +391,23 @@ public class ConstantsController {
                 }
             });
 
-            contextMenu.getItems().add(closeItem);
+            closeItem.setOnAction(event -> {
+                FXINI selected = row.getItem();
+                if (selected != null) {
+                    openedFiles.remove(selected);
+                    clearConstantsTable();
+                }
+            });
+
+            contextMenu.getItems().addAll(closeItem, saveItem);
 
             row.setOnContextMenuRequested(event -> {
                 if (!row.isEmpty()) {
                     contextMenu.show(row, event.getScreenX(), event.getScreenY());
+                    event.consume();
+
                 }
+
             });
 
             row.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
@@ -369,30 +426,7 @@ public class ConstantsController {
         settingsMenuItem.setOnAction(event -> openSettingsWindow());
         openFileMenuItem.setOnAction(event -> openFile());
         newFileMenuItem.setOnAction(event -> newFile());
-        saveFileMenuItem.setOnAction(event -> saveSelectedFile());
         saveAllFilesMenuItem.setOnAction(event -> saveAllFiles());
-
-        // Menu fileMenu = new Menu("File");
-
-        // MenuItem settingsMenuItem = new MenuItem("Settings");
-        // settingsMenuItem.setOnAction(event -> openSettingsWindow());
-
-        // MenuItem openFileMenuItem = new MenuItem("Open File");
-        // openFileMenuItem.setOnAction(event -> openFile());
-
-        // MenuItem newFileMenuItem = new MenuItem("New File");
-        // newFileMenuItem.setOnAction(event -> newFile());
-
-        // MenuItem saveFileMenuItem = new MenuItem("Save");
-        // saveFileMenuItem.setOnAction(event -> saveSelectedFile());
-
-        // MenuItem saveAllFilesMenuItem = new MenuItem("Save All");
-        // saveAllFilesMenuItem.setOnAction(event -> saveAllFiles());
-
-        // fileMenu.getItems().addAll(settingsMenuItem, openFileMenuItem,
-        // newFileMenuItem, saveFileMenuItem,
-        // saveAllFilesMenuItem);
-        // menuBar.getMenus().add(fileMenu);
     }
 
     private void openSettingsWindow() {
@@ -518,19 +552,18 @@ public class ConstantsController {
         }
     }
 
-    private void saveSelectedFile() {
-        FXINI selectedFile = filesTableView.getSelectionModel().getSelectedItem();
-        if (selectedFile == null) {
+    private void saveFile(FXINI iniFile) {
+        if (iniFile == null) {
             showError("No File Selected", "Please select a file to save.");
             return;
         }
 
-        if (selectedFile.isTemporaryFilePath()) {
+        if (iniFile.isTemporaryFilePath()) {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Save File");
             fileChooser.setInitialDirectory(new File(systemSettings.getProjectFolder()));
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Configuration Files", "*.ini"));
-            fileChooser.setInitialFileName(selectedFile.getFileName() + ".ini");
+            fileChooser.setInitialFileName(iniFile.getFileName() + ".ini");
             File file = fileChooser.showSaveDialog(filesTableView.getScene().getWindow());
 
             if (file == null) {
@@ -541,41 +574,17 @@ public class ConstantsController {
                 alert.showAndWait();
                 return;
             }
-            selectedFile.setFilePath(file.getAbsolutePath(), false);
+            iniFile.setFilePath(file.getAbsolutePath(), false);
         }
 
-        selectedFile.toINI().save(); // This will save the file at the new location
+        iniFile.toINI().save(); // This will save the file at the new location
 
     }
 
     private void saveAllFiles() {
 
         for (FXINI fxini : openedFiles) {
-            if (fxini == null) {
-                showError("No File Selected", "Please select a file to save.");
-                return;
-            }
-
-            if (fxini.isTemporaryFilePath()) {
-                FileChooser fileChooser = new FileChooser();
-                fileChooser.setTitle("Save File");
-                fileChooser.setInitialDirectory(new File(systemSettings.getProjectFolder()));
-                fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Configuration Files", "*.ini"));
-                fileChooser.setInitialFileName(fxini.getFileName() + ".ini");
-                File file = fileChooser.showSaveDialog(filesTableView.getScene().getWindow());
-
-                if (file == null) {
-                    Alert alert = new Alert(Alert.AlertType.WARNING);
-                    alert.setTitle("File Not Saved");
-                    alert.setHeaderText("Save Cancelled");
-                    alert.setContentText("The file was not saved because no location was selected.");
-                    alert.showAndWait();
-                    return;
-                }
-                fxini.setFilePath(file.getAbsolutePath(), false);
-            }
-
-            fxini.toINI().save(); // This will save the file at the new location
+            saveFile(fxini);
         }
     }
 

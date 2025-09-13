@@ -9,10 +9,9 @@
             <menus>
                 <Menu text="File">
                     <MenuItem fx:id="settingsMenuItem" text="Settings" />
-                    <MenuItem fx:id="openFileMenuItem" text="Open File" />
-                    <MenuItem fx:id="newFileMenuItem" text="New File" />
-                    <MenuItem fx:id="saveFileMenuItem" text="Save" accelerator="Ctrl+S" />
-                    <MenuItem fx:id="saveAllFilesMenuItem" text="Save All" />
+                    <MenuItem fx:id="openFileMenuItem" text="Open File" accelerator="Ctrl+O" />
+                    <MenuItem fx:id="newFileMenuItem" text="New File" accelerator="Ctrl+N" />
+                    <MenuItem fx:id="saveAllFilesMenuItem" text="Save All" accelerator="Ctrl+Shift+S" />
                 </Menu>
             </menus>
         </MenuBar>
