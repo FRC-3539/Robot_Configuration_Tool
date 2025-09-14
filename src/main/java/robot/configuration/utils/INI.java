@@ -5,16 +5,15 @@ import org.ini4j.Wini;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 
 public class INI {
     String filePath;
     List<Constant> constants;
-    Date lastModified;
+    String lastModified;
 
     public INI(String filePath,
             List<Constant> constants,
-            Date lastModified) {
+            String lastModified) {
         this.filePath = filePath;
         this.constants = constants;
         this.lastModified = lastModified;
@@ -43,6 +42,7 @@ public class INI {
             org.ini4j.Profile.Section valuesSection = ini.get(fileName);
             org.ini4j.Profile.Section typeSection = ini.get("Type");
             org.ini4j.Profile.Section commentSection = ini.get("Comment");
+            org.ini4j.Profile.Section lastModifiedSection = ini.get("lastModified");
 
             if (valuesSection != null && typeSection != null && commentSection != null) {
                 for (String key : valuesSection.keySet()) {
@@ -72,6 +72,11 @@ public class INI {
                     constants.add(new Constant(key, type, value, comment));
                 }
             }
+            if (lastModifiedSection != null) {
+                lastModified = lastModifiedSection.get("timestamp");
+            } else {
+                lastModified = "";
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -95,11 +100,13 @@ public class INI {
             wini.remove(sectionName);
             wini.remove("Type");
             wini.remove("Comment");
+            wini.remove("lastModified");
 
             // Add sections
             org.ini4j.Profile.Section valueSection = wini.add(sectionName);
             org.ini4j.Profile.Section typeSection = wini.add("Type");
             org.ini4j.Profile.Section commentSection = wini.add("Comment");
+            org.ini4j.Profile.Section lastModifiedSection = wini.add("lastModified");
 
             for (Constant constant : constants) {
                 valueSection.put(constant.getName(), constant.getValue() != null ? constant.getValue().toString() : "");
@@ -108,6 +115,8 @@ public class INI {
                 commentSection.put(constant.getName(),
                         constant.getDescription() != null ? constant.getDescription() : "");
             }
+
+            lastModifiedSection.put("timestamp", lastModified);
 
             wini.store();
             return true;

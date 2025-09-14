@@ -9,20 +9,22 @@
             <menus>
                 <Menu text="File">
                     <MenuItem fx:id="settingsMenuItem" text="Settings" />
-                    <MenuItem fx:id="openFileMenuItem" text="Open File" accelerator="Ctrl+O" />
                     <MenuItem fx:id="newFileMenuItem" text="New File" accelerator="Ctrl+N" />
                     <MenuItem fx:id="saveAllFilesMenuItem" text="Save All" accelerator="Ctrl+Shift+S" />
+                    <MenuItem fx:id="saveFileMenuItem" text="Save" accelerator="Ctrl+S" />
                 </Menu>
             </menus>
         </MenuBar>
     </top>
     <left>
         <VBox spacing="10" alignment="center" style="-fx-padding: 10 0 10 10;">
-            <TableView fx:id="filesTableView" prefWidth="200" VBox.vgrow="ALWAYS">
-            <columns>
-                <TableColumn fx:id="fileNameColumn" text="Files" />
-            </columns>
+            <TableView fx:id="filesTableView" prefWidth="300" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="fileNameColumn" text="Files" />
+                    <TableColumn fx:id="lastModifiedColumn" text="Last Modified" />
+                </columns>
             </TableView>
+            <TextField fx:id="searchField" promptText="Search"/>
         </VBox>
     </left>
     <center>

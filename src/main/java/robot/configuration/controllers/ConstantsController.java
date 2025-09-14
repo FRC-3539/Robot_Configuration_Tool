@@ -2,22 +2,20 @@ package robot.configuration.controllers;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.control.cell.ComboBoxTableCell;
-import javafx.scene.input.KeyCombination;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import robot.configuration.settings.SystemSettings;
 import robot.configuration.utils.FXConstant;
 import robot.configuration.utils.FXINI;
+import javafx.collections.transformation.FilteredList;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,6 +36,8 @@ public class ConstantsController {
     private TableView<FXINI> filesTableView; // Table to list opened files
     @FXML
     private TableColumn<FXINI, String> fileNameColumn; // Column for file names
+    @FXML
+    private TableColumn<FXINI, String> lastModifiedColumn; // Column for last modified timestamps
     @FXML
     private Button addConstantButton;
     @FXML
@@ -61,13 +61,14 @@ public class ConstantsController {
     @FXML
     private MenuItem settingsMenuItem;
     @FXML
-    private MenuItem openFileMenuItem;
-    @FXML
     private MenuItem newFileMenuItem;
     @FXML
     private MenuItem saveFileMenuItem;
     @FXML
     private MenuItem saveAllFilesMenuItem;
+
+    @FXML
+    private TextField searchField;
 
     private ObservableList<FXINI> openedFiles = FXCollections.observableArrayList();
 
@@ -81,11 +82,16 @@ public class ConstantsController {
 
     private final SystemSettings systemSettings = new SystemSettings();
 
+    private FilteredList<FXConstant> filteredConstants = null;
+
     @FXML
     public void initialize() {
         // Configure constants table
         constantsTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        filesTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+
         nameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
+        lastModifiedColumn.setCellValueFactory(cellData -> cellData.getValue().lastModifiedProperty());
         typeColumn.setCellValueFactory(cellData -> cellData.getValue().typeProperty());
         valueColumn.setCellValueFactory(cellData -> cellData.getValue().valueProperty());
         descriptionColumn.setCellValueFactory(cellData -> cellData.getValue().descriptionProperty());
@@ -227,6 +233,7 @@ public class ConstantsController {
                     alert.setTitle("Invalid Value");
                     alert.setHeaderText("Invalid Constant Value");
                     alert.setContentText("The value must match the selected data type.");
+                    setAlertIcon(alert);
                     alert.showAndWait();
                     constantsTableView.refresh();
                 }
@@ -268,8 +275,14 @@ public class ConstantsController {
             double tableWidth = newWidth.doubleValue();
             nameColumn.setPrefWidth(tableWidth * 0.20);
             typeColumn.setPrefWidth(tableWidth * 0.20);
-            valueColumn.setPrefWidth(tableWidth * 0.30);
-            descriptionColumn.setPrefWidth(tableWidth * 0.30);
+            valueColumn.setPrefWidth(tableWidth * 0.20);
+            descriptionColumn.setPrefWidth(tableWidth * 0.40);
+        });
+
+        filesTableView.widthProperty().addListener((obs, oldWidth, newWidth) -> {
+            double tableWidth = newWidth.doubleValue();
+            fileNameColumn.setPrefWidth(tableWidth * 0.48);
+            lastModifiedColumn.setPrefWidth(tableWidth * 0.52);
         });
 
         typeComboBox.setItems(typeOptions);
@@ -346,6 +359,16 @@ public class ConstantsController {
 
         // Configure files table
         fileNameColumn.setCellValueFactory(cellData -> cellData.getValue().fileNameProperty());
+        fileNameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
+        fileNameColumn.setOnEditCommit(event -> {
+            FXINI file = event.getRowValue();
+            String newFileName = event.getNewValue();
+            if (newFileName != null && !newFileName.trim().isEmpty()) {
+                file.renameFile(newFileName.trim());
+                filesTableView.refresh();
+            }
+        });
+        filesTableView.setEditable(true);
         filesTableView.setItems(openedFiles);
         filesTableView.getSelectionModel().selectedItemProperty().addListener((obs, oldFile, newFile) -> {
             if (newFile != null) {
@@ -354,16 +377,10 @@ public class ConstantsController {
         });
 
         ContextMenu fileTableContextMenu = new ContextMenu();
-        MenuItem openItem = new MenuItem("Open File");
         MenuItem newItem = new MenuItem("New File");
-
-        openItem.setOnAction(event -> {
-            openFile();
-        });
         newItem.setOnAction(event -> {
             newFile();
         });
-        fileTableContextMenu.getItems().add(openItem);
         fileTableContextMenu.getItems().add(newItem);
         filesTableView.setContextMenu(fileTableContextMenu);
 
@@ -372,9 +389,7 @@ public class ConstantsController {
             TableRow<FXINI> row = new TableRow<>();
             ContextMenu contextMenu = new ContextMenu();
 
-            MenuItem closeItem = new MenuItem("Close");
             MenuItem saveItem = new MenuItem("Save");
-            saveItem.setAccelerator(KeyCombination.keyCombination("Ctrl+S"));
 
             saveItem.setOnAction(event -> {
                 FXINI selected = row.getItem();
@@ -383,23 +398,7 @@ public class ConstantsController {
                 }
             });
 
-            closeItem.setOnAction(event -> {
-                FXINI selected = row.getItem();
-                if (selected != null) {
-                    openedFiles.remove(selected);
-                    clearConstantsTable();
-                }
-            });
-
-            closeItem.setOnAction(event -> {
-                FXINI selected = row.getItem();
-                if (selected != null) {
-                    openedFiles.remove(selected);
-                    clearConstantsTable();
-                }
-            });
-
-            contextMenu.getItems().addAll(closeItem, saveItem);
+            contextMenu.getItems().addAll(saveItem);
 
             row.setOnContextMenuRequested(event -> {
                 if (!row.isEmpty()) {
@@ -419,14 +418,39 @@ public class ConstantsController {
             return row;
         });
 
+        loadAllFilesFromProjectFolder();
+
+        // Listen to search field changes and update filter
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+            updateConstantsFilter(newVal);
+        });
+
+    }
+
+    private void loadAllFilesFromProjectFolder() {
+        File projectDir = new File(systemSettings.getProjectFolder());
+        if (projectDir.exists() && projectDir.isDirectory()) {
+            File[] iniFiles = projectDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".ini"));
+            if (iniFiles != null) {
+                for (File file : iniFiles) {
+                    openFile(file);
+                }
+            }
+        }
+        if (!openedFiles.isEmpty())
+            loadFileConstants(openedFiles.get(0));
     }
 
     private void setupMenuBar() {
-
         settingsMenuItem.setOnAction(event -> openSettingsWindow());
-        openFileMenuItem.setOnAction(event -> openFile());
         newFileMenuItem.setOnAction(event -> newFile());
         saveAllFilesMenuItem.setOnAction(event -> saveAllFiles());
+        saveFileMenuItem.setOnAction(event -> {
+            FXINI selected = filesTableView.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                saveFile(selected);
+            }
+        });
     }
 
     private void openSettingsWindow() {
@@ -445,23 +469,16 @@ public class ConstantsController {
     }
 
     private void newFile() {
-        FXINI ini = new FXINI("newFile.ini", true);
-        openedFiles.add(ini);
-    }
-
-    private void openFile() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open File");
-        fileChooser.setInitialDirectory(new File(systemSettings.getProjectFolder()));
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Configuration Files", "*.ini"));
-        // Allow multiple file selection
-        java.util.List<File> selectedFiles = fileChooser.showOpenMultipleDialog(filesTableView.getScene().getWindow());
-
-        if (selectedFiles != null) {
-            for (File file : selectedFiles) {
-                openFile(file);
-            }
+        if (systemSettings.getProjectFolder() == null || systemSettings.getProjectFolder().isEmpty()) {
+            showError("No Project Folder Set",
+                    "Please set a valid project folder in settings before creating a new file.");
+            return;
         }
+        FXINI ini = new FXINI(systemSettings.getProjectFolder() + File.separator + "newFile.ini");
+        ini.toINI().save();
+        openedFiles.add(ini);
+        filesTableView.getSelectionModel().select(ini);
+
     }
 
     private void openFile(File file) {
@@ -500,7 +517,25 @@ public class ConstantsController {
     }
 
     private void loadFileConstants(FXINI file) {
-        constantsTableView.setItems(file.getConstants());
+        // Use a filtered list for the selected file's constants
+        filteredConstants = new FilteredList<>(file.getConstants());
+        constantsTableView.setItems(filteredConstants);
+        updateConstantsFilter(searchField.getText());
+        filesTableView.getSelectionModel().select(file);
+    }
+
+    private void updateConstantsFilter(String filter) {
+        if (filteredConstants == null)
+            return;
+        String lower = filter == null ? "" : filter.toLowerCase();
+        filteredConstants.setPredicate(constant -> {
+            if (lower.isEmpty())
+                return true;
+            return (constant.getName() != null && constant.getName().toLowerCase().contains(lower))
+                    || (constant.getType() != null && constant.getType().toLowerCase().contains(lower))
+                    || (constant.getValue() != null && constant.getValue().toLowerCase().contains(lower))
+                    || (constant.getDescription() != null && constant.getDescription().toLowerCase().contains(lower));
+        });
     }
 
     private void clearConstantsTable() {
@@ -530,7 +565,7 @@ public class ConstantsController {
         if (name != null && !name.isEmpty() && name.matches("[a-zA-Z_$][a-zA-Z\\d_$]*")
                 && !JAVA_KEYWORDS.contains(name)) {
             if (type != null && value != null && isValidValue(value, type)) {
-                selectedFile.getConstants().add(new FXConstant(name, type, value, description));
+                selectedFile.addConstant(new FXConstant(selectedFile, name, type, value, description));
                 nameField.clear();
                 valueField.clear();
                 descriptionField.clear();
@@ -541,6 +576,7 @@ public class ConstantsController {
                 alert.setTitle("Invalid Value");
                 alert.setHeaderText("Invalid Constant Value");
                 alert.setContentText("The value must match the selected data type.");
+                setAlertIcon(alert);
                 alert.showAndWait();
             }
         } else {
@@ -548,6 +584,7 @@ public class ConstantsController {
             alert.setTitle("Invalid Name");
             alert.setHeaderText("Invalid Constant Name");
             alert.setContentText("The name must follow Java variable naming conventions and cannot be a Java keyword.");
+            setAlertIcon(alert);
             alert.showAndWait();
         }
     }
@@ -557,26 +594,6 @@ public class ConstantsController {
             showError("No File Selected", "Please select a file to save.");
             return;
         }
-
-        if (iniFile.isTemporaryFilePath()) {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Save File");
-            fileChooser.setInitialDirectory(new File(systemSettings.getProjectFolder()));
-            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Configuration Files", "*.ini"));
-            fileChooser.setInitialFileName(iniFile.getFileName() + ".ini");
-            File file = fileChooser.showSaveDialog(filesTableView.getScene().getWindow());
-
-            if (file == null) {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setTitle("File Not Saved");
-                alert.setHeaderText("Save Cancelled");
-                alert.setContentText("The file was not saved because no location was selected.");
-                alert.showAndWait();
-                return;
-            }
-            iniFile.setFilePath(file.getAbsolutePath(), false);
-        }
-
         iniFile.toINI().save(); // This will save the file at the new location
 
     }
@@ -593,6 +610,19 @@ public class ConstantsController {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
+        setAlertIcon(alert);
         alert.showAndWait();
+    }
+
+    // Utility method to set the icon for any alert
+    private void setAlertIcon(Alert alert) {
+        // Force the alert's stage to be created
+        alert.getDialogPane().applyCss();
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        java.io.InputStream iconStream = getClass().getResourceAsStream("/icon.png");
+        if (iconStream != null) {
+            stage.getIcons().clear();
+            stage.getIcons().add(new javafx.scene.image.Image(iconStream));
+        }
     }
 }
