@@ -43,12 +43,13 @@ jobs:
         shell: cmd
         run: |
           mkdir dist
+          dir build\libs
           jpackage ^
             --type exe ^
-            --input build/libs ^
+            --input build\libs ^
             --dest dist ^
             --name RobotConfigurationTool ^
-            --main-jar Robot_Configuration_Tool-all.jar ^
+            --main-jar Robot_Configuration_Tool.jar ^
             --main-class robot.configuration.Main ^
             --win-console
 
