@@ -29,31 +29,10 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
-      - name: Package with jpackage
-        run: |
-          mkdir dist
-          jpackage ^
-            --type exe ^
-            --input build/libs ^
-            --dest dist ^
-            --name RobotConfigurationTool ^
-            --main-jar Robot_Configuration_Tool-all.jar ^
-            --main-class robot.configuration.Main ^
-            --win-console
-
-      - name: Upload EXE artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: RobotConfigurationTool-Installer
-          path: dist/*.exe
-
-      - name: Publish Dev Release
-        uses: softprops/action-gh-release@v2
-        if: github.ref == 'refs/heads/main'
-        with:
-          tag_name: dev-latest
-          name: "Development Build"
-          prerelease: true
-          files: dist/*.exe
+      # The USERNAME and TOKEN need to correspond to the credentials environment variables used in
+      # the publishing section of your build.gradle
+      - name: Publish to GitHub Packages
+        run: ./gradlew publish
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          USERNAME: ${{ github.actor }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
