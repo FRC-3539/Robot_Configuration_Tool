@@ -50,17 +50,17 @@ jobs:
             --dest dist ^
             --name RobotConfigurationTool ^
             --main-jar Robot_Configuration_Tool.jar ^
-            --main-class robot.configuration.Main ^
+            --main-class robot.configuration.main.App ^
             --win-console ^
             --app-version 1.0.0 ^
-            --vendor "YourVendor" ^
+            --vendor "BytingBulldogs" ^
             --description "Robot Configuration Tool" ^
             --icon src\main\resources\icon.ico
 
       - name: Upload EXE artifact
         uses: actions/upload-artifact@v4
         with:
-          name: RobotConfigurationTool-Installer
+          name: RobotConfigurationTool
           path: dist/*.exe
 
       - name: Publish Dev Release

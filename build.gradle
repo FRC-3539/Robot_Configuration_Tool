@@ -84,7 +84,7 @@ application {
 jar {
     manifest {
         attributes(
-            'Main-Class': 'robot.configuration.main.App' // <-- Update to match above
+            'Main-Class': 'robot.configuration.main.App'
         )
     }
 }
