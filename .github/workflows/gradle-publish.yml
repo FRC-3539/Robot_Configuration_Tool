@@ -27,7 +27,9 @@ jobs:
           gradle-version: 9.0.0
 
       - name: Execute Gradle build
-        run: ./gradlew build
+        run: |
+          chmod +x gradlew
+          ./gradlew build
 
       - name: Package with jpackage
         run: |
