@@ -1,0 +1,56 @@
+name: Build and Package
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Package with jpackage
+        run: |
+          mkdir dist
+          jpackage ^
+            --type exe ^
+            --input build/libs ^
+            --dest dist ^
+            --name RobotConfigurationTool ^
+            --main-jar Robot_Configuration_Tool-all.jar ^
+            --main-class robot.configuration.Main ^
+            --win-console
+
+      - name: Upload EXE artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: RobotConfigurationTool-Installer
+          path: dist/*.exe
+
+      - name: Publish Dev Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: dev-latest
+          name: "Development Build"
+          prerelease: true
+          files: dist/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
