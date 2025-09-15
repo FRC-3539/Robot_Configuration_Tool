@@ -41,13 +41,13 @@ jobs:
       - name: Package with jpackage
         run: |
           mkdir dist
-          jpackage ^
-            --type exe ^
-            --input build/libs ^
-            --dest dist ^
-            --name RobotConfigurationTool ^
-            --main-jar Robot_Configuration_Tool-all.jar ^
-            --main-class robot.configuration.Main ^
+          jpackage \
+            --type exe \
+            --input build/libs \
+            --dest dist \
+            --name RobotConfigurationTool \
+            --main-jar Robot_Configuration_Tool-all.jar \
+            --main-class robot.configuration.Main \
             --win-console
 
       - name: Upload EXE artifact
