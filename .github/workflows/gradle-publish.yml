@@ -26,6 +26,13 @@ jobs:
         with:
           gradle-version: 9.0.0
 
+      - name: Ensure Gradle Wrapper files
+        run: |
+          if [ ! -f gradlew ] || [ ! -d gradle/wrapper ]; then
+            echo "Gradle wrapper files missing. Generating..."
+            gradle wrapper
+          fi
+
       - name: Execute Gradle build
         run: |
           chmod +x gradlew
