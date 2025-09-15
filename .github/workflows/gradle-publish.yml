@@ -27,6 +27,7 @@ jobs:
           gradle-version: 9.0.0
 
       - name: Ensure Gradle Wrapper files
+        shell: bash
         run: |
           if [ ! -f gradlew ] || [ ! -d gradle/wrapper ]; then
             echo "Gradle wrapper files missing. Generating..."
