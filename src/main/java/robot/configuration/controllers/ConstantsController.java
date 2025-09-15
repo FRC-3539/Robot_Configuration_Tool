@@ -42,6 +42,8 @@ public class ConstantsController {
     private Button addConstantButton;
     @FXML
     private ComboBox<String> typeComboBox;
+    @FXML
+    private Button uploadButton;
 
     @FXML
     private TextField nameField;
