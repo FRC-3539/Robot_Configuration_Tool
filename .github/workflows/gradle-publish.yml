@@ -51,7 +51,11 @@ jobs:
             --name RobotConfigurationTool ^
             --main-jar Robot_Configuration_Tool.jar ^
             --main-class robot.configuration.Main ^
-            --win-console
+            --win-console ^
+            --app-version 1.0.0 ^
+            --vendor "YourVendor" ^
+            --description "Robot Configuration Tool" ^
+            --icon src\main\resources\icon.ico
 
       - name: Upload EXE artifact
         uses: actions/upload-artifact@v4
