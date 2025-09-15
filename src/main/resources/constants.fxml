@@ -24,7 +24,19 @@
                     <TableColumn fx:id="lastModifiedColumn" text="Last Modified" />
                 </columns>
             </TableView>
-            <TextField fx:id="searchField" promptText="Search"/>
+            <HBox spacing="5" alignment="center_left">
+                <Button fx:id="uploadButton" text="⭱" prefWidth="32">
+                    <tooltip>
+                        <Tooltip text="Upload to robot"/>
+                    </tooltip>
+                </Button>
+                <Button fx:id="downloadButton" text="⭳" prefWidth="32">
+                    <tooltip>
+                        <Tooltip text="Sync from robot"/>
+                    </tooltip>
+                </Button>
+                <TextField fx:id="searchField" promptText="Search" HBox.hgrow="ALWAYS"/>
+            </HBox>
         </VBox>
     </left>
     <center>
