@@ -50,7 +50,7 @@ jobs:
             --dest dist ^
             --name RobotConfigurationTool ^
             --main-jar Robot_Configuration_Tool.jar ^
-            --main-class robot.configuration.main.App ^
+            --main-class robot.configuration.main.Main ^
             --win-console ^
             --app-version 1.0.0 ^
             --vendor "BytingBulldogs" ^

@@ -71,7 +71,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = 'robot.configuration.main.App'
+    mainClass = 'robot.configuration.main.Main'
 
     applicationDefaultJvmArgs = [
         '--add-modules', 'javafx.controls,javafx.fxml',
@@ -84,7 +84,12 @@ application {
 jar {
     manifest {
         attributes(
-            'Main-Class': 'robot.configuration.main.App'
+            'Main-Class': 'robot.configuration.main.Main'
         )
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from {
+        // Use runtimeClasspath instead of compile
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
