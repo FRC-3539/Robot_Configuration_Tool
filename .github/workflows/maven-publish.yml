@@ -43,7 +43,6 @@ jobs:
             --name RobotConfigurationTool ^
             --main-jar Robot_Configuration_Tool-${{ steps.get_version.outputs.version }}.jar ^
             --main-class robot.configuration.main.Main ^
-            --win-console ^
             --app-version ${{ steps.get_version.outputs.version }} ^
             --vendor "BytingBulldogs" ^
             --description "Robot Configuration Tool" ^
