@@ -46,7 +46,8 @@ jobs:
             --app-version ${{ steps.get_version.outputs.version }} ^
             --vendor "BytingBulldogs" ^
             --description "Robot Configuration Tool" ^
-            --icon src\main\resources\icon.ico
+            --icon src\main\resources\icon.ico ^
+            --verbose
 
       - name: Upload EXE artifact
         uses: actions/upload-artifact@v4
