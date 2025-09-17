@@ -27,6 +27,7 @@ jobs:
 
       - name: Get project version
         id: get_version
+        shell: bash
         run: |
           echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_OUTPUT
 
