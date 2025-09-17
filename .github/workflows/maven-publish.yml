@@ -25,6 +25,11 @@ jobs:
       - name: Build with Maven
         run: mvn clean package
 
+      - name: Get project version
+        id: get_version
+        run: |
+          echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_OUTPUT
+
       - name: Package with jpackage
         shell: cmd
         run: |
@@ -35,10 +40,10 @@ jobs:
             --input target ^
             --dest dist ^
             --name RobotConfigurationTool ^
-            --main-jar Robot_Configuration_Tool.jar ^
+            --main-jar Robot_Configuration_Tool-${{ steps.get_version.outputs.version }}.jar ^
             --main-class robot.configuration.main.Main ^
             --win-console ^
-            --app-version 1.0.0 ^
+            --app-version ${{ steps.get_version.outputs.version }} ^
             --vendor "BytingBulldogs" ^
             --description "Robot Configuration Tool" ^
             --icon src\main\resources\icon.ico
