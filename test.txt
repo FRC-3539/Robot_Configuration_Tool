@@ -1,0 +1,11 @@
+mvn clean package
+
+
+jpackage --input target/ 
+         --main-jar Robot_Configuration_Tool-1.0.0.jar 
+         --main-class robot.configuration.main.Main 
+         --name "Robot Configuration Tool" 
+         --type msi 
+         --icon src/main/resources/icon.ico 
+         --app-version 1.0.0 
+         --vendor "Byting Bulldogs"

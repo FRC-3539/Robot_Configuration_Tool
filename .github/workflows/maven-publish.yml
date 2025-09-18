@@ -16,11 +16,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Set up JDK 21
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
-          java-version: "21"
+          java-version: "17"
 
       - name: Build with Maven
         run: mvn clean package
@@ -36,18 +36,21 @@ jobs:
         run: |
           mkdir dist
           dir target
+          dir target\lib
           jpackage ^
             --type exe ^
             --input target ^
             --dest dist ^
             --name RobotConfigurationTool ^
-            --main-jar Robot_Configuration_Tool-${{ steps.get_version.outputs.version }}.jar ^
+            --main-jar Robot_Configuration_Tool-1.0.0.jar ^
             --main-class robot.configuration.main.Main ^
-            --app-version ${{ steps.get_version.outputs.version }} ^
+            --app-version 1.0.0 ^
             --vendor "BytingBulldogs" ^
             --description "Robot Configuration Tool" ^
             --icon src\main\resources\icon.ico ^
-            --verbose
+            --verbose ^
+            --module-path target\lib ^
+            --add-modules javafx.controls,javafx.fxml
 
       - name: Upload EXE artifact
         uses: actions/upload-artifact@v4
