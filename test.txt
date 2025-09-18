@@ -1,11 +1,19 @@
 mvn clean package
 
 
-jpackage --input target/ 
+jpackage --input target/app/ 
+         --dest dist/
          --main-jar Robot_Configuration_Tool-1.0.0.jar 
          --main-class robot.configuration.main.Main 
-         --name "Robot Configuration Tool" 
-         --type msi 
+         --name "Robot Config Tool" 
+         --type exe 
          --icon src/main/resources/icon.ico 
          --app-version 1.0.0 
          --vendor "Byting Bulldogs"
+         --icon src\main\resources\icon.ico 
+         --win-shortcut
+         --win-shortcut-prompt
+         --win-menu
+         --win-help-url https://github.com/Juniormunk/Robot_Configuration_Tool
+         --win-update-url https://github.com/Juniormunk/Robot_Configuration_Tool/releases
+

@@ -35,22 +35,20 @@ jobs:
         shell: cmd
         run: |
           mkdir dist
-          dir target
-          dir target\lib
-          jpackage ^
-            --type exe ^
-            --input target ^
-            --dest dist ^
-            --name RobotConfigurationTool ^
-            --main-jar Robot_Configuration_Tool-1.0.0.jar ^
-            --main-class robot.configuration.main.Main ^
-            --app-version 1.0.0 ^
-            --vendor "BytingBulldogs" ^
-            --description "Robot Configuration Tool" ^
-            --icon src\main\resources\icon.ico ^
-            --verbose ^
-            --module-path target\lib ^
-            --add-modules javafx.controls,javafx.fxml
+          jpackage --input target/app/ ^
+                  --dest dist/ ^
+                  --main-jar Robot_Configuration_Tool-${{ steps.get_version.outputs.version }}.jar ^
+                  --main-class robot.configuration.main.Main ^
+                  --name "Robot Config Tool" ^
+                  --type exe ^
+                  --icon src/main/resources/icon.ico ^
+                  --app-version ${{ steps.get_version.outputs.version }} ^
+                  --vendor "Byting Bulldogs" ^
+                  --win-shortcut ^
+                  --win-shortcut-prompt ^
+                  --win-menu ^
+                  --win-help-url https://github.com/FRC-3539/Robot_Configuration_Tool ^
+                  --win-update-url https://github.com/FRC-3539/Robot_Configuration_Tool/releases
 
       - name: Upload EXE artifact
         uses: actions/upload-artifact@v4
