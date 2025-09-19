@@ -9,7 +9,7 @@ import java.util.Properties;
 
 public class SystemSettings {
 
-    private static final String SETTINGS_FILE = "system_settings.properties";
+    private static final String SETTINGS_FILE = getSettingsFilePath();
     private static final String PROJECT_FOLDER_KEY = "projectFolder";
     private static final String TEAM_NUMBER_KEY = "teamNumber";
     private static final String ROBORIO_USERNAME_KEY = "roboRioUsername";
@@ -125,5 +125,15 @@ public class SystemSettings {
         // production
         byte[] keyBytes = SECRET_KEY.getBytes();
         return new SecretKeySpec(keyBytes, 0, 16, "AES"); // Ensure the key is 16 bytes for AES
+    }
+
+    private static String getSettingsFilePath() {
+        String programData = System.getenv("ProgramData");
+        if (programData == null || programData.isEmpty()) {
+            programData = "C:\\ProgramData";
+        }
+        String appFolder = programData + File.separator + "Robot Config Tool";
+        new File(appFolder).mkdirs(); // Ensure the folder exists
+        return appFolder + File.separator + "robot_config_tool_settings.properties";
     }
 }
