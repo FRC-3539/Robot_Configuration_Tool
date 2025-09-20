@@ -15,7 +15,7 @@ public class SystemSettings {
     private static final String ROBORIO_USERNAME_KEY = "roboRioUsername";
     private static final String ROBORIO_PASSWORD_KEY = "roboRioPassword";
     private static final String SECRET_KEY = "aesEncryptionKey"; // Key for AES encryption
-    private static final String REMOTE_DEPLOY_FOLDER_KEY = "remoteDeployFolder"; // Add remote deploy folder key
+    private static final String REMOTE_FOLDER_KEY = "remoteFolder"; // Add remote deploy folder key
 
     private final Properties properties;
 
@@ -81,14 +81,30 @@ public class SystemSettings {
         saveSettings();
     }
 
-    public String getRemoteDeployFolder() {
-        return properties.getProperty(REMOTE_DEPLOY_FOLDER_KEY, "/home/lvuser/deploy"); // Default to a common deploy
-                                                                                        // folder
+    public String getRemoteFolder() {
+        return properties.getProperty(REMOTE_FOLDER_KEY, "/home/lvuser/deploy/constants"); // Default to a common
+                                                                                           // deploy
+        // folder
     }
 
-    public void setRemoteDeployFolder(String folderPath) {
-        properties.setProperty(REMOTE_DEPLOY_FOLDER_KEY, folderPath);
+    public void setRemoteFolder(String folderPath) {
+        properties.setProperty(REMOTE_FOLDER_KEY, folderPath);
         saveSettings();
+    }
+
+    public String[] getRoboRioIPs() {
+        String teamStr = getTeamNumber();
+        if (teamStr == null || !teamStr.matches("\\d{1,5}")) {
+            return new String[0];
+        }
+        int team = Integer.parseInt(teamStr);
+        // FRC IP formats
+        String ip1 = String.format("10.%d.%d.2", team / 100, team % 100);
+        String ip2 = String.format("roborio-%d-frc.local", team);
+        String ip3 = String.format("roborio-%d.local", team);
+        String ip4 = String.format("roborio-%d.lan", team);
+        String ip5 = String.format("roborio-%d", team);
+        return new String[] { ip1, ip2, ip3, ip4, ip5 };
     }
 
     private String encryptPassword(String password) {

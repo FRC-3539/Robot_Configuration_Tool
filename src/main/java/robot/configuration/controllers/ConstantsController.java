@@ -44,6 +44,8 @@ public class ConstantsController {
     private ComboBox<String> typeComboBox;
     @FXML
     private Button uploadButton;
+    @FXML
+    private Button downloadButton; // Add this if not present
 
     @FXML
     private TextField nameField;
@@ -427,6 +429,64 @@ public class ConstantsController {
             updateConstantsFilter(newVal);
         });
 
+        uploadButton.setOnAction(event -> {
+            try {
+                robot.configuration.sftp.Sftp.uploadAllFiles(systemSettings);
+                // After upload, re-download files to a temp folder and verify
+                File tempDir = new File(System.getProperty("java.io.tmpdir"), "robot_config_verify");
+                if (!tempDir.exists())
+                    tempDir.mkdirs();
+                robot.configuration.sftp.Sftp.downloadAllFiles(
+                        systemSettings.getRemoteUsername(),
+                        22,
+                        systemSettings.getRemoteUsername(),
+                        systemSettings.getRemotePassword(),
+                        systemSettings.getRemoteFolder(),
+                        tempDir.getAbsolutePath());
+                // Compare each .ini file in project folder and tempDir
+                File projectDir = new File(systemSettings.getProjectFolder());
+                File[] localFiles = projectDir.listFiles((dir, name) -> name.endsWith(".ini"));
+                boolean allMatch = true;
+                StringBuilder errorFiles = new StringBuilder();
+                if (localFiles != null) {
+                    for (File localFile : localFiles) {
+                        File downloadedFile = new File(tempDir, localFile.getName());
+                        if (!downloadedFile.exists() || !filesAreEqual(localFile, downloadedFile)) {
+                            allMatch = false;
+                            errorFiles.append(localFile.getName()).append("\n");
+                        }
+                    }
+                }
+                // Clean up tempDir
+                for (File f : tempDir.listFiles())
+                    f.delete();
+                tempDir.delete();
+
+                if (allMatch) {
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION, "Upload and verification successful!",
+                            ButtonType.OK);
+                    setAlertIcon(alert);
+                    alert.showAndWait();
+                } else {
+                    throw new Exception("Verification failed for files:\n" + errorFiles.toString());
+                }
+            } catch (Exception e) {
+                showError("Upload/Verify Error", e.getMessage());
+            }
+        });
+
+        downloadButton.setOnAction(event -> {
+            try {
+                robot.configuration.sftp.Sftp.downloadAllFiles(systemSettings);
+                loadAllFilesFromProjectFolder(); // Refresh file list after download
+                Alert alert = new Alert(Alert.AlertType.INFORMATION, "Download successful!", ButtonType.OK);
+                setAlertIcon(alert);
+                alert.showAndWait();
+            } catch (Exception e) {
+                showError("Download Error", e.getMessage());
+            }
+        });
+
     }
 
     private void loadAllFilesFromProjectFolder() {
@@ -625,6 +685,23 @@ public class ConstantsController {
         if (iconStream != null) {
             stage.getIcons().clear();
             stage.getIcons().add(new javafx.scene.image.Image(iconStream));
+        }
+    }
+
+    // Utility method to compare two files byte-by-byte
+    private boolean filesAreEqual(File f1, File f2) {
+        try (java.io.FileInputStream in1 = new java.io.FileInputStream(f1);
+                java.io.FileInputStream in2 = new java.io.FileInputStream(f2)) {
+            int b1, b2;
+            do {
+                b1 = in1.read();
+                b2 = in2.read();
+                if (b1 != b2)
+                    return false;
+            } while (b1 != -1 && b2 != -1);
+            return b1 == b2;
+        } catch (Exception e) {
+            return false;
         }
     }
 }

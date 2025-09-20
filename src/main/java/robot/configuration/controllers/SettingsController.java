@@ -23,7 +23,7 @@ public class SettingsController {
     private PasswordField remotePasswordField;
 
     @FXML
-    private TextField remoteDeployFolderField; // Add a field for the remote deploy folder
+    private TextField remoteFolderField; // Add a field for the remote deploy folder
 
     private final SystemSettings systemSettings = new SystemSettings();
 
@@ -34,7 +34,7 @@ public class SettingsController {
         teamNumberField.setText(systemSettings.getTeamNumber());
         remoteUsernameField.setText(systemSettings.getRemoteUsername());
         remotePasswordField.setText(systemSettings.getRemotePassword());
-        remoteDeployFolderField.setText(systemSettings.getRemoteDeployFolder()); // Load the remote deploy folder
+        remoteFolderField.setText(systemSettings.getRemoteFolder()); // Load the remote deploy folder
     }
 
     @FXML
@@ -55,13 +55,24 @@ public class SettingsController {
         String teamNumber = teamNumberField.getText();
         String remoteUsername = remoteUsernameField.getText();
         String remotePassword = remotePasswordField.getText();
-        String remoteDeployFolder = remoteDeployFolderField.getText();
+        String remoteFolder = remoteFolderField.getText();
+
+        // Validate team number: must be a number and <= 5 digits
+        if (!teamNumber.matches("\\d{1,5}")) {
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                    javafx.scene.control.Alert.AlertType.ERROR);
+            alert.setTitle("Invalid Team Number");
+            alert.setHeaderText("Team Number Error");
+            alert.setContentText("Team number must be a number with at most 5 digits.");
+            alert.showAndWait();
+            return;
+        }
 
         systemSettings.setProjectFolder(projectFolder);
         systemSettings.setTeamNumber(teamNumber);
         systemSettings.setRemoteUsername(remoteUsername);
         systemSettings.setRemotePassword(remotePassword);
-        systemSettings.setRemoteDeployFolder(remoteDeployFolder);
+        systemSettings.setRemoteFolder(remoteFolder);
 
         // Close the settings window
         Stage stage = (Stage) projectFolderField.getScene().getWindow();
