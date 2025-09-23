@@ -100,11 +100,13 @@ public class SystemSettings {
         int team = Integer.parseInt(teamStr);
         // FRC IP formats
         String ip1 = String.format("10.%d.%d.2", team / 100, team % 100);
-        String ip2 = String.format("roborio-%d-frc.local", team);
-        String ip3 = String.format("roborio-%d.local", team);
-        String ip4 = String.format("roborio-%d.lan", team);
-        String ip5 = String.format("roborio-%d", team);
-        return new String[] { ip1, ip2, ip3, ip4, ip5 };
+        String ip2 = "172.22.11.2";
+        String ip3 = String.format("roborio-%d-FRC.lan", team);
+        String ip4 = String.format("roborio-%d-FRC.local", team);
+        String ip5 = String.format("roborio-%d-FRC.frc-field.local", team);
+        String ip6 = String.format("roborio-%d-FRC", team);
+
+        return new String[] { ip1, ip2, ip3, ip4, ip5, ip6 };
     }
 
     private String encryptPassword(String password) {
@@ -143,13 +145,17 @@ public class SystemSettings {
         return new SecretKeySpec(keyBytes, 0, 16, "AES"); // Ensure the key is 16 bytes for AES
     }
 
-    private static String getSettingsFilePath() {
+    public static String getSettingsFolder() {
         String programData = System.getenv("ProgramData");
         if (programData == null || programData.isEmpty()) {
             programData = "C:\\ProgramData";
         }
         String appFolder = programData + File.separator + "Robot Config Tool";
         new File(appFolder).mkdirs(); // Ensure the folder exists
-        return appFolder + File.separator + "robot_config_tool_settings.properties";
+        return appFolder;
+    }
+
+    public static String getSettingsFilePath() {
+        return getSettingsFolder() + File.separator + "robot_config_tool_settings.properties";
     }
 }
