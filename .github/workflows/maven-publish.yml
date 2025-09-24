@@ -55,17 +55,6 @@ jobs:
         with:
           name: RobotConfigurationTool
           path: dist/*.exe
-
-      - name: Publish Dev Release
-        uses: softprops/action-gh-release@v2
-        if: github.ref == 'refs/heads/main'
-        with:
-          tag_name: dev-latest
-          name: "Development Build"
-          prerelease: true
-          files: dist/*.exe
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   release:
     needs: [build]
     runs-on: ubuntu-22.04
