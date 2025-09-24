@@ -58,6 +58,8 @@ jobs:
   release:
     needs: [build]
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
     steps:
       - name: Download installer artifact
         uses: actions/download-artifact@v4
