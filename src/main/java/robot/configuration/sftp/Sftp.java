@@ -22,7 +22,7 @@ public class Sftp {
         for (String ip : settings.getRoboRioIPs()) {
             try {
                 InetAddress address = InetAddress.getByName(ip);
-                if (address.isReachable(250)) { // timeout in ms
+                if (address.isReachable(100)) { // timeout in ms
                     return ip;
                 }
             } catch (Exception e) {
@@ -43,6 +43,7 @@ public class Sftp {
 
             Channel channel = session.openChannel("sftp");
             channel.connect();
+            // System.out.println("Connected to " + host);
             ChannelSftp sftp = (ChannelSftp) channel;
 
             File localDir = new File(localFolderPath);
@@ -51,9 +52,24 @@ public class Sftp {
                     return name.endsWith(".ini");
                 }
             });
+            // if (files != null) {
+            // System.out.println("Files to upload:");
+            // for (File file : files) {
+            // System.out.println(file.getAbsolutePath());
+            // }
+            // }
+            try {
+                sftp.cd(remoteFolderPath);
+            } catch (com.jcraft.jsch.SftpException e) {
+                // System.out.println("Creating remote directory: " + remoteFolderPath);
+                sftp.mkdir(remoteFolderPath);
+                sftp.cd(remoteFolderPath);
+            }
             if (files != null) {
                 for (File file : files) {
                     String remoteFile = remoteFolderPath + "/" + file.getName();
+                    // System.out.println("Uploading " + file.getAbsolutePath() + " to " +
+                    // remoteFile);
                     sftp.put(new FileInputStream(file), remoteFile);
                 }
             }
@@ -79,7 +95,7 @@ public class Sftp {
                 username,
                 password,
                 remoteFolderPath,
-                tempDir.getAbsolutePath());
+                tempDir.getAbsolutePath(), false);
         // Compare each .ini file in project folder and tempDir
         File projectDir = new File(localFolderPath);
         File[] localFiles = projectDir.listFiles((dir, name) -> name.endsWith(".ini"));
@@ -105,7 +121,7 @@ public class Sftp {
     }
 
     public static void downloadAllFiles(String host, int port, String username, String password,
-            String remoteFolderPath, String localFolderPath) throws Exception {
+            String remoteFolderPath, String localFolderPath, boolean verify) throws Exception {
         try {
             JSch jsch = new JSch();
             Session session = jsch.getSession(username, host, port);
@@ -137,13 +153,15 @@ public class Sftp {
         } catch (Exception e) {
             throw new JSchException("Download failed: " + e.getMessage(), e);
         }
-        verifyFiles(host, port, username, password, localFolderPath, remoteFolderPath);
+        if (verify)
+            verifyFiles(host, port, username, password, localFolderPath, remoteFolderPath);
     }
 
     public static void uploadAllFiles(SystemSettings settings) throws Exception {
-        if (getActiveRoboRioIP(settings) != null) {
+        String activeIP = getActiveRoboRioIP(settings);
+        if (activeIP != null) {
             uploadAllFiles(
-                    settings.getRemoteUsername(),
+                    activeIP,
                     22,
                     settings.getRemoteUsername(),
                     settings.getRemotePassword(),
@@ -161,8 +179,8 @@ public class Sftp {
                     22,
                     settings.getRemoteUsername(),
                     settings.getRemotePassword(),
-                    settings.getProjectFolder(),
-                    settings.getRemoteFolder());
+                    settings.getRemoteFolder(),
+                    settings.getProjectFolder(), true);
         } else {
             throw new Exception("No reachable RoboRio found.");
         }

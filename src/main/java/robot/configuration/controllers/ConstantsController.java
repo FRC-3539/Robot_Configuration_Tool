@@ -19,6 +19,7 @@ import javafx.collections.transformation.FilteredList;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public class ConstantsController {
 
@@ -321,7 +322,8 @@ public class ConstantsController {
             deleteItem.setOnAction(event -> {
                 FXINI selectedFile = filesTableView.getSelectionModel().getSelectedItem();
                 if (selectedFile == null) {
-                    showError("No File Selected", "Please select a file before adding a constant.");
+                    showAlert("No File Selected", "Please select a file before adding a constant.",
+                            Alert.AlertType.WARNING);
                     return;
                 }
                 FXConstant selected = row.getItem();
@@ -430,28 +432,61 @@ public class ConstantsController {
         });
 
         uploadButton.setOnAction(event -> {
-            try {
-                robot.configuration.sftp.Sftp.uploadAllFiles(systemSettings);
-            } catch (Exception e) {
-                showError("Upload Error", e.getMessage());
+            Scene scene = uploadButton.getScene();
+            if (scene != null) {
+                scene.setCursor(javafx.scene.Cursor.WAIT);
+
             }
+            Thread uploadThread = new Thread(() -> {
+                try {
+                    robot.configuration.sftp.Sftp.uploadAllFiles(systemSettings);
+                    javafx.application.Platform.runLater(
+                            () -> showAlert("Upload Successful", "Upload successful!", Alert.AlertType.INFORMATION));
+                } catch (Exception e) {
+                    javafx.application.Platform
+                            .runLater(() -> showAlert("Upload Error", e.getMessage(), Alert.AlertType.ERROR));
+                } finally {
+                    if (scene != null) {
+                        javafx.application.Platform.runLater(() -> scene.setCursor(javafx.scene.Cursor.DEFAULT));
+                    }
+                }
+            });
+            uploadThread.setDaemon(true);
+            uploadThread.start();
+
         });
 
         downloadButton.setOnAction(event -> {
-            try {
-                robot.configuration.sftp.Sftp.downloadAllFiles(systemSettings);
-                loadAllFilesFromProjectFolder(); // Refresh file list after download
-                Alert alert = new Alert(Alert.AlertType.INFORMATION, "Download successful!", ButtonType.OK);
-                setAlertIcon(alert);
-                alert.showAndWait();
-            } catch (Exception e) {
-                showError("Download Error", e.getMessage());
+            Scene scene = uploadButton.getScene();
+            if (scene != null) {
+                scene.setCursor(javafx.scene.Cursor.WAIT);
             }
+            Thread downloadThread = new Thread(() -> {
+                try {
+                    robot.configuration.sftp.Sftp.downloadAllFiles(systemSettings);
+                    javafx.application.Platform.runLater(() -> {
+                        loadAllFilesFromProjectFolder(); // Refresh file list after download
+                        showAlert("Download Successful", "Download successful!", Alert.AlertType.INFORMATION);
+                    });
+                } catch (Exception e) {
+                    javafx.application.Platform
+                            .runLater(() -> showAlert("Download Error", e.getMessage(), Alert.AlertType.ERROR));
+                } finally {
+                    if (scene != null) {
+                        javafx.application.Platform.runLater(() -> scene.setCursor(javafx.scene.Cursor.DEFAULT));
+                    }
+                }
+            });
+            downloadThread.setDaemon(true);
+            downloadThread.start();
         });
 
     }
 
     private void loadAllFilesFromProjectFolder() {
+        FXINI selectedFile = filesTableView.getSelectionModel().getSelectedItem();
+        String selectedFileName = selectedFile != null ? selectedFile.getFileName() : null;
+
         File projectDir = new File(systemSettings.getProjectFolder());
         if (projectDir.exists() && projectDir.isDirectory()) {
             File[] iniFiles = projectDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".ini"));
@@ -463,6 +498,16 @@ public class ConstantsController {
         }
         if (!openedFiles.isEmpty())
             loadFileConstants(openedFiles.get(0));
+
+        if (selectedFileName != null) {
+            for (FXINI file : openedFiles) {
+                if (file.getFileName().equals(selectedFileName)) {
+                    filesTableView.getSelectionModel().select(file);
+                    loadFileConstants(file);
+                    break;
+                }
+            }
+        }
     }
 
     private void setupMenuBar() {
@@ -488,14 +533,15 @@ public class ConstantsController {
             settingsStage.show();
         } catch (IOException e) {
             e.printStackTrace();
-            showError("Error", "Failed to open the settings window: " + e.getMessage());
+            showAlert("Error", "Failed to open the settings window: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
     private void newFile() {
         if (systemSettings.getProjectFolder() == null || systemSettings.getProjectFolder().isEmpty()) {
-            showError("No Project Folder Set",
-                    "Please set a valid project folder in settings before creating a new file.");
+            showAlert("No Project Folder Set",
+                    "Please set a valid project folder in settings before creating a new file.",
+                    Alert.AlertType.WARNING);
             return;
         }
         FXINI ini = new FXINI(systemSettings.getProjectFolder() + File.separator + "newFile.ini");
@@ -507,9 +553,15 @@ public class ConstantsController {
 
     private void openFile(File file) {
         FXINI ini = new FXINI(file.getAbsolutePath());
-        if (openedFiles.contains(ini)) {
-            return;
+
+        List<FXINI> toRemove = new java.util.ArrayList<>();
+        for (FXINI opened : openedFiles) {
+            if (opened.getFileName().equalsIgnoreCase(ini.getFileName())) {
+                toRemove.add(opened);
+            }
         }
+
+        openedFiles.removeAll(toRemove);
         openedFiles.add(ini);
 
     }
@@ -566,7 +618,7 @@ public class ConstantsController {
         // Ensure a file is selected before adding a constant
         FXINI selectedFile = filesTableView.getSelectionModel().getSelectedItem();
         if (selectedFile == null) {
-            showError("No File Selected", "Please select a file before adding a constant.");
+            showAlert("No File Selected", "Please select a file before adding a constant.", Alert.AlertType.WARNING);
             return;
         }
 
@@ -610,7 +662,7 @@ public class ConstantsController {
 
     private void saveFile(FXINI iniFile) {
         if (iniFile == null) {
-            showError("No File Selected", "Please select a file to save.");
+            showAlert("No File Selected", "Please select a file to save.", Alert.AlertType.WARNING);
             return;
         }
         iniFile.toINI().save(); // This will save the file at the new location
@@ -624,8 +676,8 @@ public class ConstantsController {
         }
     }
 
-    private void showError(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
+    private void showAlert(String title, String message, Alert.AlertType type) {
+        Alert alert = new Alert(type);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
