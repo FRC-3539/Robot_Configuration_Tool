@@ -66,3 +66,39 @@ jobs:
           files: dist/*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  release:
+    needs: [build]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download installer artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: RobotConfigurationTool
+
+      - name: Set Tag
+        id: set_tag
+        run: |
+          if [[ "${{ github.event_name }}" == "push" && ( "${{ github.ref }}" == "refs/heads/2025" || "${{ github.ref }}" == "refs/heads/2024" || "${{ github.ref }}" == "refs/heads/2023" ) ]]; then
+            echo "tag=dev-latest" >> $GITHUB_ENV
+          else
+            echo "tag=v" >> $GITHUB_ENV
+          fi
+
+      - name: Push to Tag
+        uses: pyTooling/Actions/releaser@r0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ env.tag }}
+          rm: true
+          files: |
+            **/*.exe
+        if: github.event_name == 'push' || github.event_name == 'release'
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            **/*.exe
+        if: github.event_name == 'release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
