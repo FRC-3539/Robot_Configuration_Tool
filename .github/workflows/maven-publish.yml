@@ -67,7 +67,7 @@ jobs:
       - name: Set Tag
         id: set_tag
         run: |
-          if [[ "${{ github.event_name }}" == "push" && ( "${{ github.ref }}" == "refs/heads/2025" || "${{ github.ref }}" == "refs/heads/2024" || "${{ github.ref }}" == "refs/heads/2023" ) ]]; then
+          if [[ "${{ github.event_name }}" == "push"]]; then
             echo "tag=dev-latest" >> $GITHUB_ENV
           else
             echo "tag=v" >> $GITHUB_ENV
