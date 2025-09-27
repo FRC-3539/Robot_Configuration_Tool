@@ -11,7 +11,10 @@ import robot.configuration.settings.SystemSettings;
 public class SettingsController {
 
     @FXML
-    private TextField projectFolderField;
+    private TextField iniFolderField;
+
+    @FXML
+    private TextField javaFolderField;
 
     @FXML
     private TextField teamNumberField;
@@ -30,7 +33,7 @@ public class SettingsController {
     @FXML
     public void initialize() {
         // Load the current settings
-        projectFolderField.setText(systemSettings.getProjectFolder());
+        iniFolderField.setText(systemSettings.getINIFolder());
         teamNumberField.setText(systemSettings.getTeamNumber());
         remoteUsernameField.setText(systemSettings.getRemoteUsername());
         remotePasswordField.setText(systemSettings.getRemotePassword());
@@ -38,24 +41,37 @@ public class SettingsController {
     }
 
     @FXML
-    private void browseProjectFolder() {
+    private void browseINIFolder() {
         DirectoryChooser directoryChooser = new DirectoryChooser();
-        directoryChooser.setTitle("Select Project Folder");
-        Stage stage = (Stage) projectFolderField.getScene().getWindow();
+        directoryChooser.setTitle("Select INI Folder");
+        Stage stage = (Stage) iniFolderField.getScene().getWindow();
         File selectedDirectory = directoryChooser.showDialog(stage);
 
         if (selectedDirectory != null) {
-            projectFolderField.setText(selectedDirectory.getAbsolutePath());
+            iniFolderField.setText(selectedDirectory.getAbsolutePath());
+        }
+    }
+
+    @FXML
+    private void browseJavaFolder() {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Select Java Folder");
+        Stage stage = (Stage) javaFolderField.getScene().getWindow();
+        File selectedDirectory = directoryChooser.showDialog(stage);
+
+        if (selectedDirectory != null) {
+            javaFolderField.setText(selectedDirectory.getAbsolutePath());
         }
     }
 
     @FXML
     private void saveSettings() {
-        String projectFolder = projectFolderField.getText();
+        String projectFolder = iniFolderField.getText();
         String teamNumber = teamNumberField.getText();
         String remoteUsername = remoteUsernameField.getText();
         String remotePassword = remotePasswordField.getText();
         String remoteFolder = remoteFolderField.getText();
+        String javaFolder = javaFolderField.getText();
 
         // Validate team number: must be a number and <= 5 digits
         if (!teamNumber.matches("\\d{1,5}")) {
@@ -68,21 +84,22 @@ public class SettingsController {
             return;
         }
 
-        systemSettings.setProjectFolder(projectFolder);
+        systemSettings.setINIFolder(projectFolder);
         systemSettings.setTeamNumber(teamNumber);
         systemSettings.setRemoteUsername(remoteUsername);
         systemSettings.setRemotePassword(remotePassword);
         systemSettings.setRemoteFolder(remoteFolder);
+        systemSettings.setJavaFolder(javaFolder);
 
         // Close the settings window
-        Stage stage = (Stage) projectFolderField.getScene().getWindow();
+        Stage stage = (Stage) iniFolderField.getScene().getWindow();
         stage.close();
     }
 
     @FXML
     private void cancelSettings() {
         // Close the settings window without saving
-        Stage stage = (Stage) projectFolderField.getScene().getWindow();
+        Stage stage = (Stage) iniFolderField.getScene().getWindow();
         stage.close();
     }
 }

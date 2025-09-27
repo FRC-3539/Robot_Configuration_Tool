@@ -10,7 +10,8 @@ import java.util.Properties;
 public class SystemSettings {
 
     private static final String SETTINGS_FILE = getSettingsFilePath();
-    private static final String PROJECT_FOLDER_KEY = "projectFolder";
+    private static final String PROJECT_INI_KEY = "INIFolder";
+    private static final String PROJECT_JAVA_FOLDER_KEY = "JavaFolder";
     private static final String TEAM_NUMBER_KEY = "teamNumber";
     private static final String ROBORIO_USERNAME_KEY = "roboRioUsername";
     private static final String ROBORIO_PASSWORD_KEY = "roboRioPassword";
@@ -43,12 +44,21 @@ public class SystemSettings {
         }
     }
 
-    public String getProjectFolder() {
-        return properties.getProperty(PROJECT_FOLDER_KEY, "");
+    public String getINIFolder() {
+        return properties.getProperty(PROJECT_INI_KEY, "");
     }
 
-    public void setProjectFolder(String folderPath) {
-        properties.setProperty(PROJECT_FOLDER_KEY, folderPath);
+    public void setINIFolder(String folderPath) {
+        properties.setProperty(PROJECT_INI_KEY, folderPath);
+        saveSettings();
+    }
+
+    public String getJavaFolder() {
+        return properties.getProperty(PROJECT_JAVA_FOLDER_KEY, "");
+    }
+
+    public void setJavaFolder(String folderPath) {
+        properties.setProperty(PROJECT_JAVA_FOLDER_KEY, folderPath);
         saveSettings();
     }
 

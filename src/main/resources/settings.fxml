@@ -6,8 +6,13 @@
 <VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="robot.configuration.controllers.SettingsController" spacing="10" alignment="center" style="-fx-padding: 10;">
     <Label text="Project Folder:" />
     <HBox spacing="10">
-        <TextField fx:id="projectFolderField" promptText="Enter project folder path" HBox.hgrow="ALWAYS" />
-        <Button text="Browse" onAction="#browseProjectFolder" />
+        <TextField fx:id="iniFolderField" promptText="Enter INI folder path" HBox.hgrow="ALWAYS" />
+        <Button text="Browse" onAction="#browseINIFolder" />
+    </HBox>
+    <Label text="Java Folder:" />
+    <HBox spacing="10">
+        <TextField fx:id="javaFolderField" promptText="Enter Java folder path" HBox.hgrow="ALWAYS" />
+        <Button text="Browse" onAction="#browseJavaFolder" />
     </HBox>
     <Label text="Team Number:" />
     <TextField fx:id="teamNumberField" promptText="Enter team number" />

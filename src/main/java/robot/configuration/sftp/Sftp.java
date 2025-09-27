@@ -165,7 +165,7 @@ public class Sftp {
                     22,
                     settings.getRemoteUsername(),
                     settings.getRemotePassword(),
-                    settings.getProjectFolder(),
+                    settings.getINIFolder(),
                     settings.getRemoteFolder());
         } else {
             throw new Exception("No reachable RoboRio found.");
@@ -180,7 +180,7 @@ public class Sftp {
                     settings.getRemoteUsername(),
                     settings.getRemotePassword(),
                     settings.getRemoteFolder(),
-                    settings.getProjectFolder(), true);
+                    settings.getINIFolder(), true);
         } else {
             throw new Exception("No reachable RoboRio found.");
         }
