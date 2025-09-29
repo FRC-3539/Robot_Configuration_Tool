@@ -290,7 +290,27 @@ public class ConstantsController {
         constantsTableView.setEditable(true);
         nameColumn.setOnEditCommit(event -> {
             FXConstant constant = event.getRowValue();
-            constant.setName(event.getNewValue());
+            String newName = event.getNewValue();
+            FXINI selectedFile = filesTableView.getSelectionModel().getSelectedItem();
+            if (selectedFile != null) {
+                boolean duplicate = selectedFile.getConstants().stream()
+                        .anyMatch(c -> c != constant && c.getName().equals(newName));
+                if (duplicate) {
+                    showAlert("Duplicate Name", "Duplicate Constant Name",
+                            "A constant with this name already exists in the file.",
+                            Alert.AlertType.ERROR);
+                    constantsTableView.refresh();
+                    return;
+                }
+            }
+            if (newName == null || newName.isEmpty() || !newName.matches("[a-zA-Z_$][a-zA-Z\\d_$]*")
+                    || JAVA_KEYWORDS.contains(newName)) {
+                showAlert("Invalid Name", "Invalid Constant Name",
+                        "The name must follow Java variable naming conventions and cannot be a Java keyword.",
+                        Alert.AlertType.ERROR);
+                return;
+            }
+            constant.setName(newName);
         });
 
         constantsTableView.widthProperty().addListener((obs, oldWidth, newWidth) -> {
@@ -653,6 +673,16 @@ public class ConstantsController {
             value = Boolean.toString(booleanSwitch.isSelected());
         } else {
             value = valueField.getText();
+        }
+
+        // Check for duplicate name in the selected file
+        boolean duplicate = selectedFile.getConstants().stream()
+                .anyMatch(c -> c.getName().equals(name));
+        if (duplicate) {
+            showAlert("Duplicate Name", "Duplicate Constant Name",
+                    "A constant with this name already exists in the file.",
+                    Alert.AlertType.ERROR);
+            return;
         }
 
         if (name != null && !name.isEmpty() && name.matches("[a-zA-Z_$][a-zA-Z\\d_$]*")
