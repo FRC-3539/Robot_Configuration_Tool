@@ -87,7 +87,7 @@ public class ConstantsController {
             "synchronized", "this", "throw", "throws", "transient", "try", "void", "volatile", "while", "true",
             "false");
 
-    private final SystemSettings systemSettings = new SystemSettings();
+    private final SystemSettings systemSettings = SystemSettings.getSettings();
 
     private FilteredList<FXConstant> filteredConstants = null;
 
@@ -234,18 +234,30 @@ public class ConstantsController {
                 if (constant == null) {
                     return;
                 }
+                // Check for duplicate constant name in the current file
+
+                // FXINI selectedFile = filesTableView.getSelectionModel().getSelectedItem();
+                // if (selectedFile != null) {
+                // String newName = constant.getName();
+                // for (FXConstant c : selectedFile.getConstants()) {
+                // if (c != constant && c.getName().equals(newName)) {
+                // showAlert("Duplicate Name", "Duplicate Constant Name",
+                // "A constant with this name already exists in the file.",
+                // Alert.AlertType.ERROR);
+                // constantsTableView.refresh();
+                // return;
+                // }
+                // }
+                // }
                 String type = constant.getType();
 
                 if (isValidValue(newValue, type)) {
                     constant.setValue(newValue);
                 } else {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Invalid Value");
-                    alert.setHeaderText("Invalid Constant Value");
-                    alert.setContentText("The value must match the selected data type.");
-                    setAlertIcon(alert);
-                    alert.showAndWait();
+                    showAlert("Invalid Value", "Invalid Constant Value",
+                            "The value must match the selected data type.", Alert.AlertType.ERROR);
                     constantsTableView.refresh();
+
                 }
                 super.commitEdit(constant.getValue());
             }
@@ -429,7 +441,7 @@ public class ConstantsController {
             return row;
         });
 
-        loadAllFilesFromProjectFolder();
+        loadAllFilesFromINIFolder();
 
         // Listen to search field changes and update filter
         searchField.textProperty().addListener((obs, oldVal, newVal) -> {
@@ -470,7 +482,7 @@ public class ConstantsController {
                 try {
                     robot.configuration.sftp.Sftp.downloadAllFiles(systemSettings);
                     javafx.application.Platform.runLater(() -> {
-                        loadAllFilesFromProjectFolder(); // Refresh file list after download
+                        loadAllFilesFromINIFolder(); // Refresh file list after download
                         showAlert("Download Successful", "Download successful!", Alert.AlertType.INFORMATION);
                     });
                 } catch (Exception e) {
@@ -488,7 +500,7 @@ public class ConstantsController {
 
     }
 
-    private void loadAllFilesFromProjectFolder() {
+    private void loadAllFilesFromINIFolder() {
         FXINI selectedFile = filesTableView.getSelectionModel().getSelectedItem();
         String selectedFileName = selectedFile != null ? selectedFile.getFileName() : null;
 
@@ -716,11 +728,11 @@ public class ConstantsController {
         }
     }
 
-    private void showAlert(String title, String message, Alert.AlertType type) {
+    public static void showAlert(String title, String message, Alert.AlertType type) {
         showAlert(title, message, null, type);
     }
 
-    private void showAlert(String title, String message, String header, Alert.AlertType type) {
+    public static void showAlert(String title, String message, String header, Alert.AlertType type) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
         alert.setHeaderText(header);
@@ -730,11 +742,11 @@ public class ConstantsController {
     }
 
     // Utility method to set the icon for any alert
-    private void setAlertIcon(Alert alert) {
+    private static void setAlertIcon(Alert alert) {
         // Force the alert's stage to be created
         alert.getDialogPane().applyCss();
         Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-        java.io.InputStream iconStream = getClass().getResourceAsStream("/icon.png");
+        java.io.InputStream iconStream = ConstantsController.class.getResourceAsStream("/icon.png");
         if (iconStream != null) {
             stage.getIcons().clear();
             stage.getIcons().add(new javafx.scene.image.Image(iconStream));

@@ -28,7 +28,7 @@ public class SettingsController {
     @FXML
     private TextField remoteFolderField; // Add a field for the remote deploy folder
 
-    private final SystemSettings systemSettings = new SystemSettings();
+    private final SystemSettings systemSettings = SystemSettings.getSettings();
 
     @FXML
     public void initialize() {
@@ -38,6 +38,7 @@ public class SettingsController {
         remoteUsernameField.setText(systemSettings.getRemoteUsername());
         remotePasswordField.setText(systemSettings.getRemotePassword());
         remoteFolderField.setText(systemSettings.getRemoteFolder()); // Load the remote deploy folder
+        javaFolderField.setText(systemSettings.getJavaFolder());
     }
 
     @FXML
@@ -66,12 +67,36 @@ public class SettingsController {
 
     @FXML
     private void saveSettings() {
-        String projectFolder = iniFolderField.getText();
+        boolean reloadRequired = false;
+        String iniFolder = iniFolderField.getText();
         String teamNumber = teamNumberField.getText();
         String remoteUsername = remoteUsernameField.getText();
         String remotePassword = remotePasswordField.getText();
         String remoteFolder = remoteFolderField.getText();
         String javaFolder = javaFolderField.getText();
+
+        if (!iniFolder.equals(systemSettings.getINIFolder()) ||
+                !javaFolder.equals(systemSettings.getJavaFolder())) {
+
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                    javafx.scene.control.Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Unsaved Changes");
+            alert.setHeaderText("You have unsaved changes.");
+            alert.setContentText("Unsaved changes will be lost. Would you like to continue?");
+
+            javafx.scene.control.ButtonType yesButton = new javafx.scene.control.ButtonType("Continue");
+            javafx.scene.control.ButtonType noButton = new javafx.scene.control.ButtonType("Cancel",
+                    javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+
+            alert.getButtonTypes().setAll(yesButton, noButton);
+
+            java.util.Optional<javafx.scene.control.ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == noButton) {
+                return;
+            } else {
+                reloadRequired = true;
+            }
+        }
 
         // Validate team number: must be a number and <= 5 digits
         if (!teamNumber.matches("\\d{1,5}")) {
@@ -84,7 +109,7 @@ public class SettingsController {
             return;
         }
 
-        systemSettings.setINIFolder(projectFolder);
+        systemSettings.setINIFolder(iniFolder);
         systemSettings.setTeamNumber(teamNumber);
         systemSettings.setRemoteUsername(remoteUsername);
         systemSettings.setRemotePassword(remotePassword);

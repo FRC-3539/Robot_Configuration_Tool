@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="robot.configuration.controllers.SettingsController" spacing="10" alignment="center" style="-fx-padding: 10;">
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="robot.configuration.controllers.SettingsController" spacing="10" alignment="center" style="-fx-padding: 10;" prefWidth="700">
     <Label text="Project Folder:" />
     <HBox spacing="10">
         <TextField fx:id="iniFolderField" promptText="Enter INI folder path" HBox.hgrow="ALWAYS" />

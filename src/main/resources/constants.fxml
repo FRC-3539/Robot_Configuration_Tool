@@ -3,7 +3,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="robot.configuration.controllers.ConstantsController">
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="robot.configuration.controllers.ConstantsController"
+            prefHeight="700">
     <top>
         <MenuBar fx:id="menuBar">
             <menus>

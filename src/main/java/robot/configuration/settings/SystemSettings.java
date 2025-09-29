@@ -20,9 +20,18 @@ public class SystemSettings {
 
     private final Properties properties;
 
+    private static SystemSettings settings = null;
+
     public SystemSettings() {
         properties = new Properties();
         loadSettings();
+    }
+
+    public static SystemSettings getSettings() {
+        if (SystemSettings.settings == null) {
+            SystemSettings.settings = new SystemSettings();
+        }
+        return SystemSettings.settings;
     }
 
     private void loadSettings() {
