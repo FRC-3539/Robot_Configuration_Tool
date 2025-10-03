@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="robot.configuration.controllers.ConstantsController"
-            prefHeight="700">
+            prefHeight="600" prefWidth="1000">
     <top>
         <MenuBar fx:id="menuBar">
             <menus>
@@ -26,14 +26,14 @@
                 </columns>
             </TableView>
             <HBox spacing="5" alignment="center_left">
-                <Button fx:id="uploadButton" text="⭱" prefWidth="32">
-                    <tooltip>
-                        <Tooltip text="Upload to robot"/>
-                    </tooltip>
-                </Button>
-                <Button fx:id="downloadButton" text="⭳" prefWidth="32">
+                <Button fx:id="downloadButton" text="⭳" prefWidth="32" prefHeight="32" style="-fx-font-weight: bold; -fx-font-size: 16pt;">
                     <tooltip>
                         <Tooltip text="Sync from robot"/>
+                    </tooltip>
+                </Button>
+                <Button fx:id="uploadButton" text="⭱" prefWidth="32" prefHeight="32" style="-fx-font-weight: bold; -fx-font-size: 16pt;">
+                    <tooltip>
+                        <Tooltip text="Upload to robot"/>
                     </tooltip>
                 </Button>
                 <TextField fx:id="searchField" promptText="Search" HBox.hgrow="ALWAYS"/>

@@ -1,0 +1,13 @@
+/* Light blue selection for TableView rows and text selection */
+.table-view .text,
+.list-view .text,
+.tree-view .text,
+.tree-table-view .text,
+.text-area .text,
+.text-field .text {
+  -fx-highlight-fill: #60c0fb6e;
+}
+.text-area .content,
+.text-field {
+  -fx-highlight-fill: #60c0fb6e;
+}

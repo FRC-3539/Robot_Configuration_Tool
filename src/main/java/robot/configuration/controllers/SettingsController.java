@@ -75,14 +75,14 @@ public class SettingsController {
         String remoteFolder = remoteFolderField.getText();
         String javaFolder = javaFolderField.getText();
 
-        if (!iniFolder.equals(systemSettings.getINIFolder()) ||
-                !javaFolder.equals(systemSettings.getJavaFolder())) {
+        if (!iniFolder.equals(systemSettings.getINIFolder())) {
 
             javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
                     javafx.scene.control.Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Unsaved Changes");
-            alert.setHeaderText("You have unsaved changes.");
-            alert.setContentText("Unsaved changes will be lost. Would you like to continue?");
+            alert.setTitle("Unsaved configuration changes will be lost");
+            alert.setHeaderText(null);
+            alert.setContentText(
+                    "Unsaved changes in the configuration files will be lost. Would you like to continue?");
 
             javafx.scene.control.ButtonType yesButton = new javafx.scene.control.ButtonType("Continue");
             javafx.scene.control.ButtonType noButton = new javafx.scene.control.ButtonType("Cancel",

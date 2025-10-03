@@ -101,8 +101,8 @@ public class SystemSettings {
     }
 
     public String getRemoteFolder() {
-        return properties.getProperty(REMOTE_FOLDER_KEY, "/home/lvuser/deploy/constants"); // Default to a common
-                                                                                           // deploy
+        return properties.getProperty(REMOTE_FOLDER_KEY, "/home/lvuser/"); // Default to a common
+                                                                           // deploy
         // folder
     }
 

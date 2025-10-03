@@ -141,19 +141,49 @@ public class ConstantsController {
             String newType = event.getNewValue();
             constant.setType(newType);
             if ("boolean".equals(newType)) {
-                constant.setValue("" + Boolean.parseBoolean(constant.getValue()));
+                boolean newValue = false;
+
+                int tryParseInt = 0;
+                try {
+                    tryParseInt = Integer.parseInt(constant.getValue());
+                } catch (NumberFormatException e) {
+                    try {
+                        tryParseInt = (int) Double.parseDouble(constant.getValue());
+                    } catch (NumberFormatException e1) {
+                    }
+                }
+                if (tryParseInt == 1) {
+                    newValue = true;
+                } else {
+                    newValue = Boolean.parseBoolean(constant.getValue());
+                }
+                constant.setValue("" + newValue);
             } else if ("int".equals(newType)) {
-                try {
-                    constant.setValue("" + Integer.parseInt(constant.getValue()));
-                } catch (NumberFormatException e) {
-                    constant.setValue("0");
+                int newValue = 0;
+                if (constant.getValue().equals("true")) {
+                    newValue = 1;
+                } else {
+                    try {
+                        newValue = Integer.parseInt(constant.getValue());
+                    } catch (NumberFormatException e) {
+                        try {
+                            newValue = (int) Double.parseDouble(constant.getValue());
+                        } catch (NumberFormatException e1) {
+                        }
+                    }
                 }
+                constant.setValue("" + newValue);
             } else if ("double".equals(newType)) {
-                try {
-                    constant.setValue("" + Double.parseDouble(constant.getValue()));
-                } catch (NumberFormatException e) {
-                    constant.setValue("0.0");
+                double newValue = 0.0;
+                if (constant.getValue().equals("true")) {
+                    newValue = 1.0;
+                } else {
+                    try {
+                        newValue = Double.parseDouble(constant.getValue());
+                    } catch (NumberFormatException e) {
+                    }
                 }
+                constant.setValue("" + newValue);
             } else if ("String".equals(newType)) {
                 constant.setValue(constant.getValue());
             }
@@ -180,13 +210,15 @@ public class ConstantsController {
                             break;
                         case ENTER:
                             commitEdit(textField.getText());
+                            event.consume();
                             break;
                         default:
                             break;
                     }
                 });
+                // Use focusOwnerProperty to commit before TableView grabs focus back
                 textField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-                    if (!isNowFocused && wasFocused) {
+                    if (wasFocused && !isNowFocused) {
                         commitEdit(textField.getText());
                     }
                 });
@@ -230,25 +262,14 @@ public class ConstantsController {
             @Override
             public void commitEdit(String newValue) {
                 setStyle(""); // Reset style to default
+                if (originalValue.equals(newValue)) {
+                    super.commitEdit(originalValue);
+                    return;
+                }
                 FXConstant constant = this.getTableRow().getItem();
                 if (constant == null) {
                     return;
                 }
-                // Check for duplicate constant name in the current file
-
-                // FXINI selectedFile = filesTableView.getSelectionModel().getSelectedItem();
-                // if (selectedFile != null) {
-                // String newName = constant.getName();
-                // for (FXConstant c : selectedFile.getConstants()) {
-                // if (c != constant && c.getName().equals(newName)) {
-                // showAlert("Duplicate Name", "Duplicate Constant Name",
-                // "A constant with this name already exists in the file.",
-                // Alert.AlertType.ERROR);
-                // constantsTableView.refresh();
-                // return;
-                // }
-                // }
-                // }
                 String type = constant.getType();
 
                 if (isValidValue(newValue, type)) {
@@ -518,6 +539,11 @@ public class ConstantsController {
             downloadThread.start();
         });
 
+        constantsTableView.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                newScene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+            }
+        });
     }
 
     private void loadAllFilesFromINIFolder() {
@@ -724,9 +750,9 @@ public class ConstantsController {
             if (msg != null && msg.contains("Autogenerated block markers")) {
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
                 alert.setTitle("Autogenerated Block Markers Missing");
-                alert.setHeaderText("Autogenerated block markers have been modified or deleted.");
+                alert.setHeaderText(null);
                 alert.setContentText(
-                        "Restore them before regenerating.\n\nDo you want to overwrite the file or cancel?");
+                        msg + "\n\nDo you want to overwrite the file or cancel so you can restore them?");
                 setAlertIcon(alert);
                 ButtonType overwrite = new ButtonType("Overwrite");
                 ButtonType cancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
