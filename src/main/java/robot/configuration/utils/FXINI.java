@@ -2,6 +2,7 @@ package robot.configuration.utils;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
+import robot.configuration.settings.SystemSettings;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +41,7 @@ public class FXINI {
         return constants;
     }
 
-    public void renameFile(String newName) {
+    public void renameFile(String newName) throws IOException {
         String directory = filePath.getParent().toString();
         if (directory == null) {
             directory = ".";
@@ -51,7 +52,7 @@ public class FXINI {
         if (oldFile.renameTo(newFile)) {
             setFilePath(newFile.toPath());
         } else {
-            System.err.println("Failed to rename file: " + filePath + " to " + newFilePath);
+            throw new IOException("Failed to rename file: " + filePath + " to " + newFilePath);
         }
     }
 
@@ -105,9 +106,14 @@ public class FXINI {
         this.lastModified.set(sdf.format(date));
     }
 
-    public void generateJavaFile(Path outputFolder, boolean overwriteWholeFile) throws IOException {
+    public Path getJavaPath() {
         String className = fileName.get().trim();
-        Path outputPath = outputFolder.resolve(className + ".java");
+        return Path.of(SystemSettings.getSettings().getJavaFolder()).resolve(className + ".java");
+    }
+
+    public void generateJavaFile(boolean overwriteWholeFile) throws IOException {
+        String className = fileName.get().trim();
+        Path outputPath = getJavaPath();
 
         // Build list of constant declarations with JavaDoc
         List<String> generatedFields = new ArrayList<>();

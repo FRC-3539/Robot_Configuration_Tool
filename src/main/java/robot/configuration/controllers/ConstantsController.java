@@ -428,8 +428,12 @@ public class ConstantsController {
             FXINI file = event.getRowValue();
             String newFileName = event.getNewValue();
             if (newFileName != null && !newFileName.trim().isEmpty()) {
-                file.renameFile(newFileName.trim());
-                filesTableView.refresh();
+                try {
+                    file.renameFile(newFileName.trim());
+                    filesTableView.refresh();
+                } catch (IOException e) {
+                    showAlert("Rename Error", e.getMessage(), Alert.AlertType.ERROR);
+                }
             }
         });
         filesTableView.setEditable(true);
@@ -445,6 +449,18 @@ public class ConstantsController {
         newItem.setOnAction(event -> {
             newFile();
         });
+        MenuItem reloadItem = new MenuItem("Refresh All Files");
+        reloadItem.setOnAction(event -> {
+            boolean confirmed = showConfirmation(
+                    "Reload Files",
+                    "Reloading will discard any unsaved changes.",
+                    "Are you sure you want to reload all files? Unsaved changes will be lost.",
+                    "Reload");
+            if (confirmed) {
+                loadAllFilesFromINIFolder();
+            }
+        });
+        fileTableContextMenu.getItems().add(reloadItem);
         fileTableContextMenu.getItems().add(newItem);
         filesTableView.setContextMenu(fileTableContextMenu);
 
@@ -452,6 +468,33 @@ public class ConstantsController {
 
             TableRow<FXINI> row = new TableRow<>();
             ContextMenu contextMenu = new ContextMenu();
+
+            MenuItem refreshItem = new MenuItem("Refresh");
+            refreshItem.setOnAction(event -> {
+                FXINI selected = row.getItem();
+                if (selected != null) {
+                    boolean confirmed = showConfirmation(
+                            "Reload File",
+                            "Reloading will discard any unsaved changes.",
+                            "Are you sure you want to reload this file? Unsaved changes will be lost.",
+                            "Reload");
+                    if (confirmed) {
+                        // Remove and re-add to force reload from disk
+                        openedFiles.remove(selected);
+                        openFile(selected.getFilePath().toFile());
+                        filesTableView.refresh();
+                        // Select the reloaded file
+                        for (FXINI file : openedFiles) {
+                            if (file.getFileName().equals(selected.getFileName())) {
+                                filesTableView.getSelectionModel().select(file);
+                                loadFileConstants(file);
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+            contextMenu.getItems().add(refreshItem);
 
             MenuItem saveItem = new MenuItem("Save");
 
@@ -461,8 +504,42 @@ public class ConstantsController {
                     saveFile(selected);
                 }
             });
+            MenuItem renameItem = new MenuItem("Rename");
+            renameItem.setOnAction(event -> {
+                FXINI selected = row.getItem();
+                if (selected != null) {
+                    filesTableView.edit(row.getIndex(), fileNameColumn);
+                }
+            });
+            MenuItem deleteItem = new MenuItem("Delete");
+            deleteItem.setOnAction(event -> {
+                FXINI selected = row.getItem();
+                if (selected != null) {
+                    boolean confirmed = showConfirmation(
+                            "Delete File",
+                            "Are you sure you want to delete this file?",
+                            "This action cannot be undone.",
+                            "Delete");
+                    if (confirmed) {
+                        try {
+                            java.nio.file.Files.deleteIfExists(selected.getFilePath());
+                            openedFiles.remove(selected);
+                            if (!openedFiles.isEmpty()) {
+                                filesTableView.getSelectionModel().select(0);
+                                loadFileConstants(openedFiles.get(0));
+                            } else {
+                                constantsTableView.setItems(FXCollections.observableArrayList());
+                            }
+                        } catch (IOException e) {
+                            showAlert("Delete Error", "Failed to delete file: " + e.getMessage(),
+                                    Alert.AlertType.ERROR);
+                        }
+                    }
+                }
+            });
+            contextMenu.getItems().add(deleteItem);
 
-            contextMenu.getItems().addAll(saveItem);
+            contextMenu.getItems().addAll(saveItem, renameItem);
 
             row.setOnContextMenuRequested(event -> {
                 if (!row.isEmpty()) {
@@ -744,33 +821,27 @@ public class ConstantsController {
         }
 
         try {
-            iniFile.generateJavaFile(Path.of(systemSettings.getJavaFolder()), false);
+            iniFile.generateJavaFile(false);
         } catch (IOException e) {
             String msg = e.getMessage();
             if (msg != null && msg.contains("Autogenerated block markers")) {
-                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                alert.setTitle("Autogenerated Block Markers Missing");
-                alert.setHeaderText(null);
-                alert.setContentText(
-                        msg + "\n\nDo you want to overwrite the file or cancel so you can restore them?");
-                setAlertIcon(alert);
-                ButtonType overwrite = new ButtonType("Overwrite");
-                ButtonType cancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-                alert.getButtonTypes().setAll(overwrite, cancel);
-                alert.showAndWait().ifPresent(type -> {
-                    if (type == overwrite) {
-                        try {
-                            // Overwrite file by deleting and regenerating
-                            Path javaFile = Path.of(systemSettings.getJavaFolder())
-                                    .resolve(iniFile.getFileName() + ".java");
-                            java.nio.file.Files.deleteIfExists(javaFile);
-                            iniFile.generateJavaFile(Path.of(systemSettings.getJavaFolder()), true);
-                        } catch (IOException ex) {
-                            showAlert("File Generation Error", "Failed to overwrite Java file.", Alert.AlertType.ERROR);
-                        }
+                boolean confirmed = showConfirmation(
+                        "Autogenerated Block Markers Missing",
+                        null,
+                        msg + "\n\nDo you want to overwrite the file or cancel so you can restore them?",
+                        "Overwrite");
+                if (confirmed) {
+                    try {
+                        // Overwrite file by deleting and regenerating
+                        Path javaFile = Path.of(systemSettings.getJavaFolder())
+                                .resolve(iniFile.getFileName() + ".java");
+                        java.nio.file.Files.deleteIfExists(javaFile);
+                        iniFile.generateJavaFile(true);
+                    } catch (IOException ex) {
+                        showAlert("File Generation Error", "Failed to overwrite Java file.", Alert.AlertType.ERROR);
                     }
-                    // else: do nothing (cancel)
-                });
+                }
+                // else: do nothing (cancel)
             } else {
                 showAlert("File Generation Error", "Failed to generate Java file.", Alert.AlertType.ERROR);
             }
@@ -795,6 +866,18 @@ public class ConstantsController {
         alert.setContentText(message);
         setAlertIcon(alert);
         alert.showAndWait();
+    }
+
+    private boolean showConfirmation(String title, String header, String content, String confirmButtonText) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
+        setAlertIcon(alert);
+        ButtonType confirmButton = new ButtonType(confirmButtonText);
+        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(confirmButton, cancelButton);
+        return alert.showAndWait().filter(type -> type == confirmButton).isPresent();
     }
 
     // Utility method to set the icon for any alert
