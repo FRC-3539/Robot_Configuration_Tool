@@ -157,6 +157,7 @@ public class FXINI {
                     .append("    public ").append(className).append("() {\n")
                     .append("        super(\"/home/lvuser/").append(className).append(".ini\", true);\n")
                     .append("        save();\n")
+                    .append("        writeToNetworkTable();\n")
                     .append("    }\n\n");
 
             sb.append(autoStart).append("\n");
