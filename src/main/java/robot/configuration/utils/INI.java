@@ -90,6 +90,7 @@ public class INI {
             Files.createFile(filePath);
         }
         Wini wini = new Wini(filePath.toFile());
+
         String sectionName = filePath.getFileName().toString();
         int dotIndex = sectionName.lastIndexOf('.');
         if (dotIndex > 0) {

@@ -10,13 +10,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import org.ini4j.Wini;
 
 public class FXINI {
     Path filePath;
@@ -78,9 +74,55 @@ public class FXINI {
         for (FXConstant fxConstant : constants) {
             constantList.add(fxConstant.toConstant());
         }
-        INI ini = new INI(this.filePath, constantList, lastModified.get());
+        INI ini = new INI(this.filePath, constantList, lastModified.getValue());
         return ini;
     }
+
+    // public boolean save() throws IOException {
+    // if (!Files.exists(filePath)) {
+    // Files.createFile(filePath);
+    // }
+    // Wini wini = new Wini(filePath.toFile());
+
+    // String sectionName = filePath.getFileName().toString();
+    // int dotIndex = sectionName.lastIndexOf('.');
+    // if (dotIndex > 0) {
+    // sectionName = sectionName.substring(0, dotIndex);
+    // }
+
+    // // Clear existing sections
+    // wini.remove(sectionName);
+    // wini.remove("Type");
+    // wini.remove("Comment");
+    // wini.remove("lastModified");
+    // // wini.remove("iniSavePath");
+    // // wini.remove("javaSavePath");
+
+    // // Add sections
+    // org.ini4j.Profile.Section valueSection = wini.add(sectionName);
+    // org.ini4j.Profile.Section typeSection = wini.add("Type");
+    // org.ini4j.Profile.Section commentSection = wini.add("Comment");
+    // org.ini4j.Profile.Section lastModifiedSection = wini.add("lastModified");
+    // // org.ini4j.Profile.Section iniSavePathSection = wini.add("iniSavePath");
+    // // org.ini4j.Profile.Section javaSavePathSection = wini.add("javaSavePath");
+
+    // for (FXConstant constant : constants) {
+    // valueSection.put(constant.getName(), constant.getValue() != null ?
+    // constant.getValue().toString() : "");
+    // typeSection.put(constant.getName(),
+    // constant.getType() != null ? constant.getType() : String.class.getName());
+    // commentSection.put(constant.getName(),
+    // constant.getDescription() != null ? constant.getDescription() : "");
+    // }
+
+    // lastModifiedSection.put("timestamp", lastModified.getValue());
+    // // iniSavePathSection.put("path", filePath.toAbsolutePath().toString());
+    // // javaSavePathSection.put("path",
+    // getJavaPath().toAbsolutePath().toString());
+
+    // wini.store();
+    // return true;
+    // }
 
     public void setFilePath(Path absolutePath) {
         this.filePath = absolutePath;

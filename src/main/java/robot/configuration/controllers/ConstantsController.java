@@ -15,7 +15,6 @@ import javafx.stage.Stage;
 import robot.configuration.settings.SystemSettings;
 import robot.configuration.utils.FXConstant;
 import robot.configuration.utils.FXINI;
-import robot.configuration.utils.INI;
 import javafx.collections.transformation.FilteredList;
 
 import java.io.File;
@@ -90,6 +89,15 @@ public class ConstantsController {
     private final SystemSettings systemSettings = SystemSettings.getSettings();
 
     private FilteredList<FXConstant> filteredConstants = null;
+
+    private boolean hasUnsavedChanges() {
+        for (FXINI fxini : openedFiles) {
+            if (fxini.getConstants().stream().anyMatch(FXConstant::isDirty)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @FXML
     public void initialize() {
@@ -193,6 +201,7 @@ public class ConstantsController {
             private final CheckBox checkBox = new CheckBox();
             private TextField textField = new TextField();
             private String originalValue;
+            private boolean justCommitted = false;
 
             {
                 // Toggle boolean directly in the model
@@ -206,20 +215,25 @@ public class ConstantsController {
                     switch (event.getCode()) {
                         case ESCAPE:
                             event.consume();
-                            cancelEdit();
+                            escapeEdit();
                             break;
                         case ENTER:
-                            commitEdit(textField.getText());
+                            if (!justCommitted) {
+                                justCommitted = true;
+                                commitEdit(textField.getText());
+                            }
                             event.consume();
                             break;
                         default:
                             break;
                     }
                 });
-                // Use focusOwnerProperty to commit before TableView grabs focus back
                 textField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
                     if (wasFocused && !isNowFocused) {
-                        commitEdit(textField.getText());
+                        if (!justCommitted) {
+                            commitEdit(textField.getText());
+                        }
+                        justCommitted = false;
                     }
                 });
             }
@@ -250,13 +264,17 @@ public class ConstantsController {
 
             }
 
-            @Override
-            public void cancelEdit() {
+            public void escapeEdit() {
                 setStyle(""); // Reset style to default
                 if (!isBooleanCell()) {
                     textField.setText(originalValue);
                 }
                 updateItem(originalValue, false); // revert to original value
+            }
+
+            @Override
+            public void cancelEdit() {
+                commitEdit(originalValue);
             }
 
             @Override
@@ -277,8 +295,7 @@ public class ConstantsController {
                 } else {
                     showAlert("Invalid Value", "Invalid Constant Value",
                             "The value must match the selected data type.", Alert.AlertType.ERROR);
-                    constantsTableView.refresh();
-
+                    escapeEdit();
                 }
                 super.commitEdit(constant.getValue());
             }
@@ -572,6 +589,11 @@ public class ConstantsController {
                 scene.setCursor(javafx.scene.Cursor.WAIT);
 
             }
+            if (!saveAllFiles()) // Save all files before uploading
+            {
+                showAlert("Upload Error", "Failed to save all files before uploading.", Alert.AlertType.ERROR);
+                return; // If saving failed, do not proceed with upload
+            }
             Thread uploadThread = new Thread(() -> {
                 try {
                     robot.configuration.sftp.Sftp.uploadAllFiles(systemSettings);
@@ -619,6 +641,22 @@ public class ConstantsController {
         constantsTableView.sceneProperty().addListener((obs, oldScene, newScene) -> {
             if (newScene != null) {
                 newScene.getStylesheets().add(getClass().getResource("/styles.css").toExternalForm());
+            }
+        });
+
+        constantsTableView.getSelectionModel().selectedIndexProperty().addListener((obs, oldIdx, newIdx) -> {
+            if (hasUnsavedChanges()) {
+                showAlert("Unsaved Changes",
+                    "You have unsaved changes. Please save before switching rows or files.",
+                    Alert.AlertType.WARNING);
+            }
+        });
+
+        filesTableView.getSelectionModel().selectedIndexProperty().addListener((obs, oldIdx, newIdx) -> {
+            if (hasUnsavedChanges()) {
+                showAlert("Unsaved Changes",
+                    "You have unsaved changes. Please save before switching files.",
+                    Alert.AlertType.WARNING);
             }
         });
     }
@@ -808,16 +846,16 @@ public class ConstantsController {
         }
     }
 
-    private void saveFile(FXINI iniFile) {
+    private boolean saveFile(FXINI iniFile) {
         if (iniFile == null) {
             showAlert("No File Selected", "Please select a file to save.", Alert.AlertType.WARNING);
-            return;
+            return false;
         }
-        INI ini = iniFile.toINI();
         try {
-            ini.save();
+            iniFile.toINI().save();
         } catch (IOException e) {
             showAlert("File Save Error", "Failed to save INI file.", Alert.AlertType.ERROR);
+            return false;
         }
 
         try {
@@ -839,20 +877,26 @@ public class ConstantsController {
                         iniFile.generateJavaFile(true);
                     } catch (IOException ex) {
                         showAlert("File Generation Error", "Failed to overwrite Java file.", Alert.AlertType.ERROR);
+                        return false;
                     }
                 }
                 // else: do nothing (cancel)
             } else {
                 showAlert("File Generation Error", "Failed to generate Java file.", Alert.AlertType.ERROR);
+                return false;
             }
         }
+        return true;
     }
 
-    private void saveAllFiles() {
-
+    private boolean saveAllFiles() {
+        boolean allSaved = true;
         for (FXINI fxini : openedFiles) {
-            saveFile(fxini);
+            if (!saveFile(fxini)) {
+                allSaved = false;
+            }
         }
+        return allSaved;
     }
 
     public static void showAlert(String title, String message, Alert.AlertType type) {
