@@ -90,14 +90,14 @@ public class ConstantsController {
 
     private FilteredList<FXConstant> filteredConstants = null;
 
-    private boolean hasUnsavedChanges() {
-        for (FXINI fxini : openedFiles) {
-            if (fxini.getConstants().stream().anyMatch(FXConstant::isDirty)) {
-                return true;
-            }
-        }
-        return false;
-    }
+    // private boolean hasUnsavedChanges() {
+    //     for (FXINI fxini : openedFiles) {
+    //         if (fxini.getConstants().stream().anyMatch(FXConstant::isDirty)) {
+    //             return true;
+    //         }
+    //     }
+    //     return false;
+    // }
 
     @FXML
     public void initialize() {
@@ -644,21 +644,21 @@ public class ConstantsController {
             }
         });
 
-        constantsTableView.getSelectionModel().selectedIndexProperty().addListener((obs, oldIdx, newIdx) -> {
-            if (hasUnsavedChanges()) {
-                showAlert("Unsaved Changes",
-                    "You have unsaved changes. Please save before switching rows or files.",
-                    Alert.AlertType.WARNING);
-            }
-        });
+        // constantsTableView.getSelectionModel().selectedIndexProperty().addListener((obs, oldIdx, newIdx) -> {
+        //     if (hasUnsavedChanges()) {
+        //         showAlert("Unsaved Changes",
+        //             "You have unsaved changes. Please save before switching rows or files.",
+        //             Alert.AlertType.WARNING);
+        //     }
+        // });
 
-        filesTableView.getSelectionModel().selectedIndexProperty().addListener((obs, oldIdx, newIdx) -> {
-            if (hasUnsavedChanges()) {
-                showAlert("Unsaved Changes",
-                    "You have unsaved changes. Please save before switching files.",
-                    Alert.AlertType.WARNING);
-            }
-        });
+        // filesTableView.getSelectionModel().selectedIndexProperty().addListener((obs, oldIdx, newIdx) -> {
+        //     if (hasUnsavedChanges()) {
+        //         showAlert("Unsaved Changes",
+        //             "You have unsaved changes. Please save before switching files.",
+        //             Alert.AlertType.WARNING);
+        //     }
+        // });
     }
 
     private void loadAllFilesFromINIFolder() {
