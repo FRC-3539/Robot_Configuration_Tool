@@ -4,7 +4,7 @@
   <groupId>robot.configuration</groupId>
   <artifactId>Robot_Configuration_Tool</artifactId>
   <packaging>jar</packaging>
-  <version>1.0.0</version>
+  <version>1.1.0</version>
   <name>Robot_Configuration_Tool</name>
   <url>https://github.com/FRC-3539</url>
 
