@@ -15,6 +15,7 @@ import javafx.stage.Stage;
 import robot.configuration.settings.SystemSettings;
 import robot.configuration.utils.FXConstant;
 import robot.configuration.utils.FXINI;
+import robot.configuration.utils.INI;
 import javafx.collections.transformation.FilteredList;
 
 import java.io.File;
@@ -117,7 +118,7 @@ public class ConstantsController {
         });
 
         nameColumn.setCellFactory(TextFieldTableCell.forTableColumn());
-        ObservableList<String> typeOptions = FXCollections.observableArrayList("String", "int", "double", "boolean");
+        ObservableList<String> typeOptions = FXCollections.observableArrayList(INI.supportedTypes);
         // Always show ComboBox for type column, not just on edit
         typeColumn.setCellFactory(col -> {
             return new ComboBoxTableCell<FXConstant, String>(typeOptions) {

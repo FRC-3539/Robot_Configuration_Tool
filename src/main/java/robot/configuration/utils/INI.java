@@ -8,11 +8,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class INI {
     Path filePath;
     List<Constant> constants;
     String lastModified;
+
+    public static List<String> supportedTypes = Arrays.asList("String", "int", "double", "boolean");
 
     public INI(Path filePath,
             List<Constant> constants,
@@ -56,6 +59,10 @@ public class INI {
                             type = String.class.getName();
                     } catch (Exception e) {
                         type = String.class.getName();
+                    }
+                    if(!supportedTypes.contains(type))
+                    {
+                        continue;
                     }
                     try {
                         comment = commentSection.get(key);
