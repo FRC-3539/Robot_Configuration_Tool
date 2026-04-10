@@ -92,12 +92,12 @@ public class ConstantsController {
     private FilteredList<FXConstant> filteredConstants = null;
 
     // private boolean hasUnsavedChanges() {
-    //     for (FXINI fxini : openedFiles) {
-    //         if (fxini.getConstants().stream().anyMatch(FXConstant::isDirty)) {
-    //             return true;
-    //         }
-    //     }
-    //     return false;
+    // for (FXINI fxini : openedFiles) {
+    // if (fxini.getConstants().stream().anyMatch(FXConstant::isDirty)) {
+    // return true;
+    // }
+    // }
+    // return false;
     // }
 
     @FXML
@@ -390,6 +390,9 @@ public class ConstantsController {
         // Add button actions
         addConstantButton.setOnAction(event -> addNewConstant());
 
+        valueField.setOnAction(event -> addNewConstant());
+        descriptionField.setOnAction(event -> addNewConstant());
+
         constantsTableView.setRowFactory(tv -> {
             TableRow<FXConstant> row = new TableRow<>();
             ContextMenu rowContextMenu = new ContextMenu();
@@ -645,20 +648,22 @@ public class ConstantsController {
             }
         });
 
-        // constantsTableView.getSelectionModel().selectedIndexProperty().addListener((obs, oldIdx, newIdx) -> {
-        //     if (hasUnsavedChanges()) {
-        //         showAlert("Unsaved Changes",
-        //             "You have unsaved changes. Please save before switching rows or files.",
-        //             Alert.AlertType.WARNING);
-        //     }
+        // constantsTableView.getSelectionModel().selectedIndexProperty().addListener((obs,
+        // oldIdx, newIdx) -> {
+        // if (hasUnsavedChanges()) {
+        // showAlert("Unsaved Changes",
+        // "You have unsaved changes. Please save before switching rows or files.",
+        // Alert.AlertType.WARNING);
+        // }
         // });
 
-        // filesTableView.getSelectionModel().selectedIndexProperty().addListener((obs, oldIdx, newIdx) -> {
-        //     if (hasUnsavedChanges()) {
-        //         showAlert("Unsaved Changes",
-        //             "You have unsaved changes. Please save before switching files.",
-        //             Alert.AlertType.WARNING);
-        //     }
+        // filesTableView.getSelectionModel().selectedIndexProperty().addListener((obs,
+        // oldIdx, newIdx) -> {
+        // if (hasUnsavedChanges()) {
+        // showAlert("Unsaved Changes",
+        // "You have unsaved changes. Please save before switching files.",
+        // Alert.AlertType.WARNING);
+        // }
         // });
     }
 
