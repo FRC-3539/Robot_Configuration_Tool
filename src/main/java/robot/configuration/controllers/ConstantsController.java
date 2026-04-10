@@ -17,6 +17,7 @@ import robot.configuration.utils.FXConstant;
 import robot.configuration.utils.FXINI;
 import robot.configuration.utils.INI;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 
 import java.io.File;
 import java.io.IOException;
@@ -90,6 +91,7 @@ public class ConstantsController {
     private final SystemSettings systemSettings = SystemSettings.getSettings();
 
     private FilteredList<FXConstant> filteredConstants = null;
+    private SortedList<FXConstant> sortedConstants = null;
 
     // private boolean hasUnsavedChanges() {
     // for (FXINI fxini : openedFiles) {
@@ -110,6 +112,7 @@ public class ConstantsController {
         lastModifiedColumn.setCellValueFactory(cellData -> cellData.getValue().lastModifiedProperty());
         typeColumn.setCellValueFactory(cellData -> cellData.getValue().typeProperty());
         valueColumn.setCellValueFactory(cellData -> cellData.getValue().valueProperty());
+        valueColumn.setSortable(false);
         descriptionColumn.setCellValueFactory(cellData -> cellData.getValue().descriptionProperty());
         descriptionColumn.setCellFactory(TextFieldTableCell.forTableColumn());
         descriptionColumn.setOnEditCommit(event -> {
@@ -784,7 +787,11 @@ public class ConstantsController {
     private void loadFileConstants(FXINI file) {
         // Use a filtered list for the selected file's constants
         filteredConstants = new FilteredList<>(file.getConstants());
-        constantsTableView.setItems(filteredConstants);
+        // Wrap the filtered list with a sorted list to enable sorting
+        sortedConstants = new SortedList<>(filteredConstants);
+        // Bind the sorted list's comparator to the table view's comparator
+        sortedConstants.comparatorProperty().bind(constantsTableView.comparatorProperty());
+        constantsTableView.setItems(sortedConstants);
         updateConstantsFilter(searchField.getText());
         filesTableView.getSelectionModel().select(file);
     }

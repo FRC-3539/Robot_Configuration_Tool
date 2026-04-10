@@ -1,5 +1,6 @@
 package robot.configuration.main;
 
+import atlantafx.base.theme.CupertinoDark;
 import atlantafx.base.theme.PrimerDark;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -18,7 +19,7 @@ public class App extends Application {
     @Override
     public void start(Stage stage) {
         try {
-            Application.setUserAgentStylesheet(new PrimerDark().getUserAgentStylesheet());
+            Application.setUserAgentStylesheet(new CupertinoDark().getUserAgentStylesheet());
 
             // Load the main content
             FXMLLoader loader2 = new FXMLLoader(getClass().getResource("/constants.fxml"));
