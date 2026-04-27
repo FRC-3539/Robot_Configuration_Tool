@@ -166,7 +166,7 @@ public class FXINI {
             String description = constant.getDescription();
 
             // Add quotes for String values
-            if ("String".equals(type) && !(value.startsWith("\"") && value.endsWith("\""))) {
+            if (ConstantType.STRING.equals(type) && !(value.startsWith("\"") && value.endsWith("\""))) {
                 value = "\"" + value.replace("\"", "\\\"") + "\"";
             }
 

@@ -79,6 +79,7 @@ public class SettingsController {
 
             javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
                     javafx.scene.control.Alert.AlertType.CONFIRMATION);
+            applyAlertStyles(alert);
             alert.setTitle("Unsaved configuration changes will be lost");
             alert.setHeaderText(null);
             alert.setContentText(
@@ -102,6 +103,7 @@ public class SettingsController {
         if (!teamNumber.matches("\\d{1,5}")) {
             javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
                     javafx.scene.control.Alert.AlertType.ERROR);
+            applyAlertStyles(alert);
             alert.setTitle("Invalid Team Number");
             alert.setHeaderText("Team Number Error");
             alert.setContentText("Team number must be a number with at most 5 digits.");
@@ -126,5 +128,15 @@ public class SettingsController {
         // Close the settings window without saving
         Stage stage = (Stage) iniFolderField.getScene().getWindow();
         stage.close();
+    }
+
+    private void applyAlertStyles(javafx.scene.control.Alert alert) {
+        var cssUrl = getClass().getResource("/styles.css");
+        if (cssUrl != null) {
+            String stylesheet = cssUrl.toExternalForm();
+            if (!alert.getDialogPane().getStylesheets().contains(stylesheet)) {
+                alert.getDialogPane().getStylesheets().add(stylesheet);
+            }
+        }
     }
 }

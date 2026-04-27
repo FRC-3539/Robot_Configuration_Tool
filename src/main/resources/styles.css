@@ -1,3 +1,32 @@
+/* Default smaller font sizes */
+.label,
+.button,
+.text-field,
+.text-area,
+.combo-box,
+.choice-box,
+.check-box,
+.radio-button,
+.table-view,
+.list-view,
+.tree-view {
+  -fx-font-size: 10pt;
+  font-size: 10pt;
+}
+
+.menu-bar {
+  -fx-font-size: 10pt;
+  font-size: 10pt;
+}
+
+/* Smaller text for Alert dialogs */
+.dialog-pane .label,
+.dialog-pane .content.label,
+.dialog-pane .button {
+  -fx-font-size: 10pt;
+  font-size: 10pt;
+}
+
 /* Light blue selection for TableView rows and text selection */
 .table-view .text,
 .list-view .text,

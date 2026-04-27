@@ -8,11 +8,13 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import robot.configuration.settings.SystemSettings;
+import robot.configuration.utils.ConstantType;
 import robot.configuration.utils.FXConstant;
 import robot.configuration.utils.FXINI;
 import robot.configuration.utils.INI;
@@ -57,8 +59,8 @@ public class ConstantsController {
     @FXML
     private TextField valueField;
 
-    @FXML
-    private TextField descriptionField;
+    // @FXML
+    // private TextField descriptionField;
 
     @FXML
     private CheckBox booleanSwitch;
@@ -74,6 +76,9 @@ public class ConstantsController {
     private MenuItem saveFileMenuItem;
     @FXML
     private MenuItem saveAllFilesMenuItem;
+
+    @FXML
+    private HBox translationFields;
 
     @FXML
     private TextField searchField;
@@ -92,15 +97,6 @@ public class ConstantsController {
 
     private FilteredList<FXConstant> filteredConstants = null;
     private SortedList<FXConstant> sortedConstants = null;
-
-    // private boolean hasUnsavedChanges() {
-    // for (FXINI fxini : openedFiles) {
-    // if (fxini.getConstants().stream().anyMatch(FXConstant::isDirty)) {
-    // return true;
-    // }
-    // }
-    // return false;
-    // }
 
     @FXML
     public void initialize() {
@@ -152,7 +148,7 @@ public class ConstantsController {
             FXConstant constant = event.getRowValue();
             String newType = event.getNewValue();
             constant.setType(newType);
-            if ("boolean".equals(newType)) {
+            if (ConstantType.BOOLEAN.equals(newType)) {
                 boolean newValue = false;
 
                 int tryParseInt = 0;
@@ -170,7 +166,7 @@ public class ConstantsController {
                     newValue = Boolean.parseBoolean(constant.getValue());
                 }
                 constant.setValue("" + newValue);
-            } else if ("int".equals(newType)) {
+            } else if (ConstantType.INT.equals(newType)) {
                 int newValue = 0;
                 if (constant.getValue().equals("true")) {
                     newValue = 1;
@@ -185,7 +181,7 @@ public class ConstantsController {
                     }
                 }
                 constant.setValue("" + newValue);
-            } else if ("double".equals(newType)) {
+            } else if (ConstantType.DOUBLE.equals(newType)) {
                 double newValue = 0.0;
                 if (constant.getValue().equals("true")) {
                     newValue = 1.0;
@@ -196,7 +192,7 @@ public class ConstantsController {
                     }
                 }
                 constant.setValue("" + newValue);
-            } else if ("String".equals(newType)) {
+            } else if (ConstantType.STRING.equals(newType)) {
                 constant.setValue(constant.getValue());
             }
             constantsTableView.refresh();
@@ -211,7 +207,7 @@ public class ConstantsController {
                 // Toggle boolean directly in the model
                 checkBox.setOnAction(e -> {
                     FXConstant row = this.getTableRow().getItem();
-                    if (row != null && "boolean".equals(row.getType())) {
+                    if (row != null && ConstantType.BOOLEAN.equals(row.getType())) {
                         row.setValue(Boolean.toString(checkBox.isSelected()));
                     }
                 });
@@ -244,7 +240,8 @@ public class ConstantsController {
 
             private boolean isBooleanCell() {
 
-                return this.getTableRow().getItem() != null && "boolean".equals(this.getTableRow().getItem().getType());
+                return this.getTableRow().getItem() != null
+                        && ConstantType.BOOLEAN.equals(this.getTableRow().getItem().getType());
             }
 
             @Override
@@ -294,6 +291,9 @@ public class ConstantsController {
                 }
                 String type = constant.getType();
 
+                if (ConstantType.DOUBLE.equals(type) || ConstantType.INT.equals(type)) {
+                    newValue = tryEvalulateExpression(newValue, type);
+                }
                 if (isValidValue(newValue, type)) {
                     constant.setValue(newValue);
                 } else {
@@ -373,12 +373,18 @@ public class ConstantsController {
         typeComboBox.setValue("String");
 
         typeComboBox.valueProperty().addListener((obs, oldType, newType) -> {
-            if ("boolean".equals(newType)) {
+            if (ConstantType.BOOLEAN.equals(newType)) {
                 valueField.setVisible(false);
                 booleanSwitch.setVisible(true);
+                translationFields.setVisible(false);
+                // } else if (ConstantType.TRANSLATION2D.equals(newType)) {
+                // valueField.setVisible(false);
+                // booleanSwitch.setVisible(false);
+                // translationFields.setVisible(true);
             } else {
                 valueField.setVisible(true);
                 booleanSwitch.setVisible(false);
+                translationFields.setVisible(false);
             }
         });
 
@@ -394,7 +400,7 @@ public class ConstantsController {
         addConstantButton.setOnAction(event -> addNewConstant());
 
         valueField.setOnAction(event -> addNewConstant());
-        descriptionField.setOnAction(event -> addNewConstant());
+        // descriptionField.setOnAction(event -> addNewConstant());
 
         constantsTableView.setRowFactory(tv -> {
             TableRow<FXConstant> row = new TableRow<>();
@@ -759,25 +765,22 @@ public class ConstantsController {
     }
 
     private boolean isValidValue(String value, String type) {
-        try {
-            switch (type) {
-                case "int":
-                    Integer.parseInt(value);
-                    break;
-                case "double":
-                    Double.parseDouble(value);
-                    break;
-                case "boolean":
-                    if (!value.equalsIgnoreCase("true") && !value.equalsIgnoreCase("false")) {
-                        throw new IllegalArgumentException("Invalid Boolean value");
-                    }
-                    break;
 
-                case "String":
-                    break;
-                default:
-                    return false;
+        try {
+            if (ConstantType.INT.equals(type)) {
+                Integer.parseInt(value);
+            } else if (ConstantType.DOUBLE.equals(type)) {
+                Double.parseDouble(value);
+            } else if (ConstantType.BOOLEAN.equals(type)) {
+                if (!value.equalsIgnoreCase("true") && !value.equalsIgnoreCase("false")) {
+                    throw new IllegalArgumentException("Invalid Boolean value");
+                }
+            } else if (ConstantType.STRING.equals(type)) {
+                // All values are valid for String
+            } else {
+                return false; // Unsupported type
             }
+
             return true;
         } catch (Exception e) {
             return false;
@@ -821,12 +824,17 @@ public class ConstantsController {
         String name = nameField.getText();
         String type = typeComboBox.getValue();
         String value;
-        String description = descriptionField.getText();
+        // String description = descriptionField.getText();
+        String description = "";
 
-        if ("boolean".equals(type)) {
+        if (ConstantType.BOOLEAN.equals(type)) {
             value = Boolean.toString(booleanSwitch.isSelected());
         } else {
             value = valueField.getText();
+        }
+
+        if (ConstantType.DOUBLE.equals(type) || ConstantType.INT.equals(type)) {
+            value = tryEvalulateExpression(value, type);
         }
 
         // Check for duplicate name in the selected file
@@ -845,7 +853,7 @@ public class ConstantsController {
                 selectedFile.addConstant(new FXConstant(selectedFile, name, type, value, description));
                 nameField.clear();
                 valueField.clear();
-                descriptionField.clear();
+                // descriptionField.clear();
                 booleanSwitch.setSelected(false);
 
             } else {
@@ -921,6 +929,7 @@ public class ConstantsController {
         alert.setTitle(title);
         alert.setHeaderText(header);
         alert.setContentText(message);
+        applyAlertStyles(alert);
         setAlertIcon(alert);
         alert.showAndWait();
     }
@@ -930,11 +939,22 @@ public class ConstantsController {
         alert.setTitle(title);
         alert.setHeaderText(header);
         alert.setContentText(content);
+        applyAlertStyles(alert);
         setAlertIcon(alert);
         ButtonType confirmButton = new ButtonType(confirmButtonText);
         ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
         alert.getButtonTypes().setAll(confirmButton, cancelButton);
         return alert.showAndWait().filter(type -> type == confirmButton).isPresent();
+    }
+
+    private static void applyAlertStyles(Alert alert) {
+        var cssUrl = ConstantsController.class.getResource("/styles.css");
+        if (cssUrl != null) {
+            String stylesheet = cssUrl.toExternalForm();
+            if (!alert.getDialogPane().getStylesheets().contains(stylesheet)) {
+                alert.getDialogPane().getStylesheets().add(stylesheet);
+            }
+        }
     }
 
     // Utility method to set the icon for any alert
@@ -946,6 +966,19 @@ public class ConstantsController {
         if (iconStream != null) {
             stage.getIcons().clear();
             stage.getIcons().add(new javafx.scene.image.Image(iconStream));
+        }
+    }
+
+    private static String tryEvalulateExpression(String expression, String Type) {
+        try {
+            net.objecthunter.exp4j.Expression e = new net.objecthunter.exp4j.ExpressionBuilder(expression).build();
+            Double result = e.evaluate();
+            if (ConstantType.INT.getValue().equals(Type)) {
+                return Integer.toString(result.intValue());
+            }
+            return result.toString();
+        } catch (Exception ex) {
+            return expression;
         }
     }
 }

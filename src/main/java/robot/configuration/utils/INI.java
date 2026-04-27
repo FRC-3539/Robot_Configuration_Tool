@@ -9,13 +9,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class INI {
     Path filePath;
     List<Constant> constants;
     String lastModified;
 
-    public static List<String> supportedTypes = Arrays.asList("String", "int", "double", "boolean");
+    public static final List<String> supportedTypes = Stream.of(ConstantType.values()).map(ConstantType::getValue)
+            .collect(Collectors.toList());
 
     public INI(Path filePath,
             List<Constant> constants,
@@ -60,8 +63,7 @@ public class INI {
                     } catch (Exception e) {
                         type = String.class.getName();
                     }
-                    if(!supportedTypes.contains(type))
-                    {
+                    if (!supportedTypes.contains(type)) {
                         continue;
                     }
                     try {

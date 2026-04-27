@@ -26,12 +26,12 @@
                 </columns>
             </TableView>
             <HBox spacing="5" alignment="center_left">
-                <Button fx:id="downloadButton" text="⭳" prefWidth="32" prefHeight="32" style="-fx-font-weight: bold; -fx-font-size: 16pt;">
+                <Button fx:id="downloadButton" text="⭳" prefWidth="32" prefHeight="32" style="-fx-font-weight: bold; -fx-font-size: 10pt;">
                     <tooltip>
                         <Tooltip text="Sync from robot"/>
                     </tooltip>
                 </Button>
-                <Button fx:id="uploadButton" text="⭱" prefWidth="32" prefHeight="32" style="-fx-font-weight: bold; -fx-font-size: 16pt;">
+                <Button fx:id="uploadButton" text="⭱" prefWidth="32" prefHeight="32" style="-fx-font-weight: bold; -fx-font-size: 10pt;">
                     <tooltip>
                         <Tooltip text="Upload to robot"/>
                     </tooltip>
@@ -51,14 +51,21 @@
                 </columns>
             </TableView>
             <HBox spacing="10" alignment="center">
-                <TextField fx:id="nameField" promptText="Name" />
-                <ComboBox fx:id="typeComboBox" promptText="Type" prefWidth="120" />
+                <TextField fx:id="nameField" promptText="Name" prefWidth="150"/>
+                <ComboBox fx:id="typeComboBox" promptText="Type" prefWidth="150" />
                 <StackPane HBox.hgrow="ALWAYS">
                     <TextField fx:id="valueField" promptText="Value" />
                     <CheckBox fx:id="booleanSwitch" text="True/False" visible="false" />
+
+                    <HBox fx:id="translationFields" spacing="5" alignment="center" visible="false">
+                    <TextField fx:id="translationXField" promptText="X (m)" prefWidth="80"/>
+                    <TextField fx:id="translationYField" promptText="Y (m)" prefWidth="80"/>
+                    <TextField fx:id="translationRotField" promptText="Rot (deg)" prefWidth="80"/>
+                    </HBox>
+
                 </StackPane>
-                <TextField fx:id="descriptionField" promptText="Description" HBox.hgrow="ALWAYS" />
-                <Button text="Add" fx:id="addConstantButton" />
+                <!-- <TextField fx:id="descriptionField" promptText="Description" HBox.hgrow="ALWAYS" /> -->
+                <Button text="Add" fx:id="addConstantButton" prefWidth="90"/>
             </HBox>
         </VBox>
     </center>
